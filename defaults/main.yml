@@ -12,3 +12,5 @@ boss__nfs__nfs_exports:
   - path: "/nfsfileshare"
     remote: "/nfsfileshare"
     export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"
+    mount_dir: "/mnt/nfsfileshare"
+    state: mounted

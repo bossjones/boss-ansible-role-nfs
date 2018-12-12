@@ -1,0 +1,94 @@
+---
+
+######################################################################################
+# nfs - common
+######################################################################################
+
+# FIXME: Come back to this, libnfsidmap2 is used on xenial ... libnfsidmap is debian
+- name: Install NFS packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nfs-common
+    - nfs-kernel-server
+    - libnfsidmap2
+
+- name: create nfs share directories
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: 0777
+  with_items: "{{ boss__nfs__nfs_exports }}"
+
+
+
+######################################################################################
+# nfs - server
+######################################################################################
+
+- debug: msg="NFS Server"
+
+- name: enable services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - rpcbind
+    - nfs-server
+
+- name: start services
+  service:
+    name: "{{ item }}"
+    state: started
+  with_items:
+    - rpc-statd
+    - nfs-idmapd
+
+- name: add NFS share to /etc/export
+  lineinfile:
+    dest: "/etc/exports"
+    regexp: "^{{ item.path }} "
+    line: "{{ item.path }} {{ item.export }}"
+    create: yes
+  with_items: "{{ boss__nfs__nfs_exports }}"
+  register: nfs_exports_result
+
+- name: Restart NFS server service
+  service:
+    name: nfs-server
+    state: restarted
+  when: nfs_exports_result|changed
+
+# - name: enable firewalld for NFS Server
+#   firewalld:
+#     service: "{{ item }}"
+#     zone: public
+#     permanent: true
+#     state: enabled
+#   with_items:
+#     - mountd
+#     - rpc-bind
+#     - nfs
+
+######################################################################################
+# nfs - client
+######################################################################################
+- debug: msg="NFS Client"
+
+- name: enable services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - rpcbind
+
+- name: mount the NFS directories
+  mount:
+    name: "{{ item.path }}"
+    src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
+    state: "{{ item.state }}"
+    fstype: nfs
+  with_items: "{{ boss__nfs__nfs_exports }}"

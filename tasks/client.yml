@@ -1,0 +1,52 @@
+######################################################################################
+# nfs - client
+######################################################################################
+- debug: msg="NFS Client"
+
+# FIXME: Come back to this, libnfsidmap2 is used on xenial ... libnfsidmap is debian
+- name: Install NFS packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nfs-common
+    - nfs-kernel-server
+    - libnfsidmap2
+
+- name: Verify mount directory exists
+  file:
+    path: "{{ item.mount_dir }}"
+    state: directory
+    mode: 0777
+  with_items: "{{ boss__nfs__nfs_exports }}"
+
+- name: enable services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - rpcbind
+
+- name: mount the NFS directories
+  mount:
+    name: "{{ item.path }}"
+    src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
+    state: mounted
+    fstype: nfs
+  with_items: "{{ boss__nfs__nfs_exports }}"
+
+# ----
+
+
+# - name: Verify mount directory exists
+#   file:
+#     path: /mnt/ontap
+#     state: directory
+
+# - name: Mount nfs export
+#   mount:
+#     state: "{{ state }}"
+#     path: /mnt/ontap
+#     src: "172.32.0.184:/{{ volname }}"
+#     fstype: nfs
