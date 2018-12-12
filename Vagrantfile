@@ -62,15 +62,11 @@ Vagrant.configure(2) do |config|
         # Prevent clock drift, see http://stackoverflow.com/a/19492466/323407
         v.customize ['guestproperty', 'set', :id, '/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold', 10_000]
 
-        # v.customize ['modifyvm', :id, '--usb', 'on']
-        # v.customize ['modifyvm', :id, '--audio', 'coreaudio', '--audiocontroller', 'ac97']
         v.customize ['modifyvm', :id, '--audio', 'none']
 
         # v.customize ["modifyvm", :id, "--natdnshostresolver2", "on"]
       end
 
-      # If you want to create an array where each entry is a single word, you can use the %w{} syntax, which creates a word array:
-      # However, notice that the %w{} method lets you skip the quotes and the commas.
       hostname_with_hyenalab_tld = "#{settings[:hostname]}.hyenalab.home"
 
       aliases = [hostname_with_hyenalab_tld, settings[:hostname]]
@@ -113,120 +109,6 @@ Vagrant.configure(2) do |config|
             SHELL
         s.privileged = true
       end # end - vm_config.vm.provision 'shell' do |s|
-
-      # FIXME: DISABLED 11/30/2018 ... we don't want to do all of this stuff in shell scripts! Ansible should handle it all!
-      # Enable provisioning with a shell script. Additional provisioners such as
-      # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
-      # documentation for more information about their specific syntax and use.
-      # vm_config.vm.provision 'shell' do |s|
-      #   s.inline = <<-SHELL
-      #     if [ -f /vagrant_bootstrap ]; then
-      #       echo "vagrant_bootstrap EXISTS ALREADY"
-      #       exit 0
-      #     fi
-
-      #     sudo apt-get update && sudo apt-get install python htop ncdu -y && sudo apt-get install -f
-
-      #     apt-get update
-      #     apt-get install -y \
-      #       apt-transport-https \
-      #       ca-certificates \
-      #       curl \
-      #       python3-pip \
-      #       software-properties-common
-      #     pip3 install virtualenv
-      #     echo vm.max_map_count=262144 > /etc/sysctl.d/vm_max_map_count.conf
-      #     sysctl --system
-      #     grep -qF "#{NON_ROOT_USER} - nofile 65536" /etc/security/limits.conf || echo "#{NON_ROOT_USER} - nofile 65536" >> /etc/security/limits.conf
-
-      #     echo vm.max_map_count=262144 > /etc/sysctl.d/vm_max_map_count.conf
-      #     sysctl --system
-      #     grep -qF '#{NON_ROOT_USER} - nofile 65536' /etc/security/limits.conf || echo '#{NON_ROOT_USER} - nofile 65536' >> /etc/security/limits.conf
-      #     grep -qF 'root - nofile 65536' /etc/security/limits.conf || echo 'root - nofile 65536' >> /etc/security/limits.conf
-
-      #     # NOTE: Improving Performance on Low-Memory Linux VMs
-      #     # NOTES: https://www.codero.com/knowledge-base/content/3/389/en/custom-swap-on-linux-virtual-machines.html
-      #     # size of swapfile in megabytes
-      #     swapsize=#{SWAPSIZE}
-
-      #     # does the swap file already exist?
-      #     grep -q "swapfile" /etc/fstab
-
-      #     # if not then create it
-      #     if [ $? -ne 0 ]; then
-      #       echo 'swapfile not found. Adding swapfile.'
-      #       fallocate -l ${swapsize}M /swapfile
-      #       chmod 600 /swapfile
-      #       mkswap /swapfile
-      #       swapon /swapfile
-      #       echo '/swapfile none swap defaults 0 0' >> /etc/fstab
-      #     else
-      #       echo 'swapfile found. No changes made.'
-      #     fi
-
-      #     # output results to terminal
-      #     df -h
-      #     cat /proc/swaps
-      #     cat /proc/meminfo | grep Swap
-
-      #     # https://www.codero.com/knowledge-base/content/3/388/en/improving-performance-on-low_memory-linux-vms.html
-      #     echo vm.swappiness = 10 >> /etc/sysctl.d/30-vm-swappiness.conf
-      #     echo vm.vfs_cache_pressure = 50 >> /etc/sysctl.d/30-vm-vfs_cache_pressure.conf
-      #     sysctl -p
-
-      #     DEBIAN_FRONTEND=noninteractive apt-get update; apt-get install -y \
-      #     sudo \
-      #     bash-completion \
-      #     apt-file \
-      #     autoconf \
-      #     automake \
-      #     gettext \
-      #     yelp-tools \
-      #     flex \
-      #     bison \
-      #     build-essential \
-      #     ccache \
-      #     curl \
-      #     git \
-      #     lcov \
-      #     libbz2-dev \
-      #     libffi-dev \
-      #     libreadline-dev \
-      #     libsqlite3-dev \
-      #     libssl-dev \
-      #     python3-pip \
-      #     vim \
-      #   ; \
-      #         apt-get update \
-      #   ; \
-      #     DEBIAN_FRONTEND=noninteractive apt-get install -y python-six python-pip \
-      #   ; \
-      #         rm -rf /var/lib/apt/lists/*
-
-      #   # FIXME: Get this into a role, systemctl 9/29/2018
-      #   apt-get update
-      #   apt-get install linux-headers-$(uname -r) -y
-      #   sysctl net.ipv4.tcp_available_congestion_control
-      #   echo net.core.default_qdisc=fq > /etc/sysctl.d/30-tcp_congestion_control.conf
-      #   echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.d/30-tcp_congestion_control.conf
-      #   sysctl -p
-
-      #   touch /vagrant_bootstrap && \
-      #   chown #{NON_ROOT_USER}:#{NON_ROOT_USER} /vagrant_bootstrap
-      #   SHELL
-      #   s.privileged = true
-      # end
-
-      # FIXME: Get this into a role, ansible install bcc 9/29/2018
-      #   vm_config.vm.provision 'shell' do |s|
-      #     s.inline = <<-SHELL
-      #     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys D4284CDD
-      #     echo "deb https://repo.iovisor.org/apt/bionic bionic main" | tee /etc/apt/sources.list.d/iovisor.list
-      #     apt-get update
-      #     apt-get install bcc-tools libbcc-examples linux-headers-$(uname -r) -y
-      #     SHELL
-      #     s.privileged = true
-      #   end
 
       # vm_config.vm.provision :ansible do |ansible|
       #   ansible.host_key_checking	= 'false'
