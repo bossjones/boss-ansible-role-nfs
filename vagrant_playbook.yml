@@ -20,8 +20,8 @@
     - role: ../
       task: master
       boss__nfs__master_node_ip: '192.168.50.101'
-      # boss__nfs__nfs_interface: 'enp0s8'
-      boss__nfs__nfs_interface: 'enp0s3'
+      boss__nfs__nfs_interface: 'enp0s8'
+      # boss__nfs__nfs_interface: 'enp0s3'
 
 
 - hosts: nodes
@@ -42,8 +42,8 @@
     - role: ../
       task: client
       boss__nfs__master_node_ip: '192.168.50.101'
-      # boss__nfs__nfs_interface: 'enp0s8'
-      boss__nfs__nfs_interface: 'enp0s3'
+      boss__nfs__nfs_interface: 'enp0s8'
+      # boss__nfs__nfs_interface: 'enp0s3'
 
 # - hosts: client
 #   tasks:

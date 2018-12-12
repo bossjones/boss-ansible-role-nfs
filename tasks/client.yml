@@ -20,6 +20,14 @@
     mode: 0777
   with_items: "{{ boss__nfs__nfs_exports }}"
 
+
+- name: create nfs share directories
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    mode: 0777
+  with_items: "{{ boss__nfs__nfs_exports }}"
+
 - name: enable services
   service:
     name: "{{ item }}"
