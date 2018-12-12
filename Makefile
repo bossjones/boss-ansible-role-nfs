@@ -145,7 +145,7 @@ provision:
 	@bash ./scripts/up.sh
 	vagrant sandbox commit
 	vagrant reload
-	ansible-playbook -i inventory.ini site.yml -v
+	ansible-playbook -i inventory.ini vagrant_playbook.yml -v
 
 up:
 	@bash ./scripts/up.sh
@@ -163,13 +163,13 @@ destroy:
 	@vagrant destroy -f
 
 run-ansible:
-	@ansible-playbook -i inventory.ini site.yml -v
+	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v
 
 run-ansible-docker:
-	@ansible-playbook -i inventory.ini site.yml -v --tags docker-provision --flush-cache
+	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v --tags docker-provision --flush-cache
 
 run-ansible-master:
-	@ansible-playbook -i inventory.ini site.yml -v --tags primary_master
+	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v --tags primary_master
 
 run-ansible-timezone:
 	@ansible-playbook -i inventory.ini timezone.yml -v
@@ -212,7 +212,7 @@ ping-bridge:
 	@ansible-playbook -v -i hosts ping.yml
 
 run-bridge-ansible:
-	@ansible-playbook -i hosts site.yml -v
+	@ansible-playbook -i hosts vagrant_playbook.yml -v
 
 run-bridge-test-ansible:
 	@ansible-playbook -i hosts test.yml -v
@@ -227,7 +227,7 @@ run-bridge-log-iptables-ansible:
 	@ansible-playbook -i hosts log_iptables.yml -v
 
 run-bridge-ansible-no-slow:
-	@ansible-playbook -i hosts site.yml -v --skip-tags "slow"
+	@ansible-playbook -i hosts vagrant_playbook.yml -v --skip-tags "slow"
 
 run-bridge-debug-ansible:
 	@ansible-playbook -i hosts debug.yml -v

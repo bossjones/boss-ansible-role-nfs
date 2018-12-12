@@ -2,8 +2,8 @@
 ##############################################################################
 # SERVERS: Install and configure ntp
 ##############################################################################
-- hosts: servers
-  name: (servers) - Install and configure ntp
+- hosts: masters
+  name: (masters) - Install and configure nfs
   gather_facts: True
   become: yes
   become_method: sudo
@@ -12,19 +12,11 @@
   vars:
     boss__ntp__timezone: 'America/New_York'
   tags:
-    - docker
-    - docker-provision
-    - worker
+    - master
     - install
-    - worker_install
-    - ha
-    - ntp
-    - slow
+    - master_install
 
   roles:
     - role: ../
-      tags: [ 'worker', 'install', 'worker_install', 'ntp']
-      task: prepare-ntpd
-      boss__ntp__timezone: 'America/New_York'
-      boss__kubernetes__kubeadm__master_node_ip: '192.168.1.241'
-      boss__kubernetes__kubeadm__kubernetes_interface: 'enp0s3'
+      boss__nfs__master_node_ip: '192.168.50.101'
+      boss__nfs__nfs_interface: 'enp0s3'

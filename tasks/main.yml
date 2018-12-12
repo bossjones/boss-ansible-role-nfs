@@ -10,15 +10,16 @@
     name: "{{ item }}"
     state: present
   with_items:
-    - nfs-utils
-    - libnfsidmap
+    - nfs-common
+    - nfs-kernel-server
+    - libnfsidmap2
 
 - name: create nfs share directories
   file:
     path: "{{ item.path }}"
     state: directory
     mode: 0777
-  with_items: "{{ nfs_exports }}"
+  with_items: "{{ boss__nfs__nfs_exports }}"
 
 
 

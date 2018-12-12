@@ -5,7 +5,7 @@ boss__nfs__install_nfs: true
 boss__nfs__nfs_interface: "eth0"
 
 # SOURCE: darkedges.nfs
-boss__nfs__nfs_server_group: master
+boss__nfs__nfs_server_group: masters
 boss__nfs__nfs_client_group: nodes
 
 boss__nfs__nfs_exports:
