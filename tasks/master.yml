@@ -46,18 +46,35 @@
     - rpc-statd
     - nfs-idmapd
 
-- name: add NFS share to /etc/export
-  lineinfile:
-    dest: "/etc/exports"
-    regexp: "^{{ item.path }} "
-    line: "{{ item.path }} {{ item.export }}"
-    create: yes
-  with_items: "{{ boss__nfs__nfs_exports }}"
+# - name: add NFS share to /etc/export
+#   lineinfile:
+#     dest: "/etc/exports"
+#     regexp: "^{{ item.path }} "
+#     line: "{{ item.path }} {{ item.export }}"
+#     create: yes
+#   with_items: "{{ boss__nfs__nfs_exports }}"
+#   register: nfs_exports_result
+
+
+- name: Copy exports file.
+  template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: 0644
+  # notify: reload nfs
   register: nfs_exports_result
 
 - name: Restart NFS server service
   service:
     name: nfs-server
+    state: restarted
+  when: nfs_exports_result|changed
+
+- name: Restart rpc-statd server service
+  service:
+    name: rpc-statd
     state: restarted
   when: nfs_exports_result|changed
 
@@ -90,5 +107,8 @@
     name: "{{ item.path }}"
     src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
     state: "{{ item.state }}"
-    fstype: nfs
+    # fstype: nfs
+    fstype: "{{ item.fstype }}"
+    # fstab_entry: "_netdev,auto  0  0"
+    opts: "none    bind  0  0"
   with_items: "{{ boss__nfs__nfs_exports }}"

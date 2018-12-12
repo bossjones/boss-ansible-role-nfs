@@ -40,8 +40,9 @@
   mount:
     name: "{{ item.path }}"
     src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
-    state: mounted
-    fstype: nfs
+    state: {{item.state}}
+    fstype: "{{item.fstype}}"
+    opts: "{{item.opts}}"
   with_items: "{{ boss__nfs__nfs_exports }}"
 
 # ----
