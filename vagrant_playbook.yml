@@ -1,0 +1,46 @@
+---
+- name: provision docker on both vagrant guest machines
+  hosts: servers
+  become: True
+  gather_facts: True
+  become_method: sudo
+  vars:
+    boss__debug__debug_variables_file: '/etc/ansible_variables'
+    boss__debug__dump_dir: '/etc/ansible_dumps'
+    boss__debug__dump_type: 'seperate' # seperate
+  # pre_tasks:
+  #   # - name: Update apt cache.
+  #   #   apt: update_cache=yes cache_valid_time=600
+  #   #   when: ansible_os_family == 'Debian'
+
+  #   - name: "debug: special ansible var 'vars':"
+  #     debug: var={{ vars | to_nice_json }}
+  #     changed_when: false
+
+  # #   # - name: Add test user
+  # #   #   user:
+  # #   #     name: "test"
+  # #   #     shell: "/bin/bash"
+
+  # # {{ vars | to_nice_json }}
+
+  roles:
+    # - role: boss-ansible-role-bootstrap
+    #   # Disable raw commands to avoid sudo issues.
+    #   boss__bootstrap_raw: False
+    #   # Don't set domain on Travis.
+    #   boss__bootstrap_domain: ''
+    #   # Try bootstrapping a different IP address to avoid idempotency loop.
+    #   # boss__bootstrap_ipv4: '127.0.1.2'
+    #   # boss__hosts_file: /etc/hosts.molecule
+    #   boss__bootstrap_admin_default_users:
+    #     - name: bossjones
+    #   boss__bootstrap_admin_groups: [ 'admins', 'staff', 'adm', 'sudo', 'bossjones' ]
+    #   boss__bootstrap_admin_system: False
+    # - role: boss-ansible-role-core
+    # - role: boss-ansible-role-fact
+    # - role: boss-ansible-role-environment
+    - role: ../
+      boss__debug__debug_variables_file: '/etc/ansible_variables'
+      boss__debug__dump_dir: '/etc/ansible_dumps'
+      boss__debug__dump_type: 'seperate' # seperate

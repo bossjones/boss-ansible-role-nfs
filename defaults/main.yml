@@ -1,0 +1,16 @@
+---
+# defaults file for boss-ansible-role-debug
+
+# Where to save all Ansible variables
+boss__debug__debug_variables_file: '/etc/ansible_variables'
+
+boss__debug__dump_dir: '/etc/ansible_dumps'
+
+boss__debug__dump_type: 'unified' # seperate
+
+boss__debug__special_vars_map:
+- { template_src: 'env_vars.json.j2', fname: 'env_vars.json' }
+- { template_src: 'group_names.json.j2', fname: 'group_names.json' }
+- { template_src: 'groups.json.j2', fname: 'groups.json' }
+- { template_src: 'hostvars.json.j2', fname: 'hostvars.json' }
+- { template_src: 'vars.json.j2', fname: 'vars.json' }

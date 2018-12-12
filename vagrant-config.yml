@@ -1,0 +1,25 @@
+# https://gist.github.com/gnarf/b103e77f37236ca72d8e
+:vms:
+  debug1:
+    :hostname: "debug1"
+    :ip: "192.168.23.100"
+    :ram: 1024
+    :cpu: 2
+    # :box: "debian/stretch64"
+    :box: "ubuntu/xenial64"
+    :id: 10
+
+:groups:
+  debug1:
+    - debug1
+  # docker2:
+  #   - docker2
+  docker_servers:
+    - debug1
+    # - docker2
+  servers:
+    - debug1
+    # - docker2
+  dns_servers:
+    - debug1
+    # - docker2
