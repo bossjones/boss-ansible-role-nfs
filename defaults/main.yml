@@ -1,16 +1,14 @@
 ---
-# defaults file for boss-ansible-role-debug
+# NOTE: Taken from vagrant-ansible-kubernetes
+boss__nfs__install_nfs: true
 
-# Where to save all Ansible variables
-boss__debug__debug_variables_file: '/etc/ansible_variables'
+boss__nfs__nfs_interface: "eth0"
 
-boss__debug__dump_dir: '/etc/ansible_dumps'
+# SOURCE: darkedges.nfs
+boss__nfs__nfs_server_group: master
+boss__nfs__nfs_client_group: nodes
 
-boss__debug__dump_type: 'unified' # seperate
-
-boss__debug__special_vars_map:
-- { template_src: 'env_vars.json.j2', fname: 'env_vars.json' }
-- { template_src: 'group_names.json.j2', fname: 'group_names.json' }
-- { template_src: 'groups.json.j2', fname: 'groups.json' }
-- { template_src: 'hostvars.json.j2', fname: 'hostvars.json' }
-- { template_src: 'vars.json.j2', fname: 'vars.json' }
+boss__nfs__nfs_exports:
+  - path: "/nfsfileshare"
+    remote: "/nfsfileshare"
+    export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"

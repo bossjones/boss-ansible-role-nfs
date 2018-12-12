@@ -1,234 +1,246 @@
-# frozen_string_literal: true
-
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# All Vagrant configuration is done below. The "2" in Vagrant.configure
-# configures the configuration version (we support older styles for
-# backwards compatibility). Please don't change it unless you know what
-# you're doing.
+# Vagrant multi machine configuration
+
+require 'yaml'
+config_yml = YAML.load_file(File.open(__dir__ + '/vagrant-config.yml'))
 
 NON_ROOT_USER = 'vagrant'.freeze
-
-$instance_name_prefix = 'nfs'
-$num_instances = 1 # Number of nodes, excluding master which is always created.
-# $custom_networking_dnsDomain = ".demo.k8s.ap"  # put same value like custom.networking.dnsDomain in ansible's group_vars/all, BUT this time WITH THE DOT in front!
-# E.g.  ".demo.k8s.ap",
-# https://www.virtualbox.org/manual/ch08.html#vboxmanage-natnetwork
-# def nat(config)
-### Cannot be used, as the rest of vagrant commands fail...
-#    config.vm.provider "virtualbox" do |v|
-#      v.customize ["modifyvm", :id, "--nic1", "bridged", "--bridgeadapter", "enp3s0", "--nictype1", "virtio", "--macaddress1", "auto" ] #, "--nat-network2", "mybridgeinterface", "--nictype1", "virtio"] # 82540EM
-#      v.customize ["modifyvm", :id, "--nic2", "nat", "--nictype2", "virtio"]
-#    end
-# end
+SWAPSIZE = 1000
 
 Vagrant.configure(2) do |config|
-  # The most common configuration options are documented and commented below.
-  # For a complete reference, please see the online documentation at
-  # https://docs.vagrantup.com.
+  # set auto update to false if you do NOT want to check the correct additions version when booting this machine
+  # config.vbguest.auto_update = true
 
-  # set auto_update to false, if you do NOT want to check the correct
-  # additions version when booting this machine
-  config.vbguest.auto_update = false
+  config_yml[:vms].each do |name, settings|
+    # use the config key as the vm identifier
+    config.vm.define name.to_s, autostart: true, primary: true do |vm_config|
+      config.ssh.insert_key = false
+      vm_config.vm.usable_port_range = (2200..2250)
 
-  # config.vm.box_check_update = "false"  # If there is no internet access to get new updates
+      # This will be applied to all vms
 
-  # config.vm.network "public_network", type: "dhcp", bridge: "enp3s0"
-  # config.vm.network "public_network" #, :bridge => "enp3s0" #, mac: "auto" #, :adapter=>1 #, use_dhcp_assigned_default_route: true
-  # config.ssh.port=22
-  # config.vm.network "public_network", type: "dhcp", :bridge => "enp3s0"
-  # config.vm.usable_port_range = (2000..2500)
-  # config.vm.boot_timeout = 90
-  # config.ssh.insert_key = false
-  # config.ssh.username = "your_user"
-  # config.ssh.password = "your_password"
+      # set auto_update to false, if you do NOT want to check the correct
+      # additions version when booting this machine
+      vm_config.vbguest.auto_update = false
 
-  config.vm.provider 'virtualbox' do |vb|
-    vb.gui = false # Set to true to view the window in graphical mode
-    vb.memory = '2048' # "4096" #"3072" # 6144
-    vb.cpus = 2
-    # vb.customize ["storagectl", :id, "--name", "IDE Controller", "--remove"] # Make sure it does not use IDE
-    # vb.customize ["storagectl", :id, "--name", "SATA Controller", "--add", "sata"]   # Make it use SATA: faster and less issues
-    # optionally add: , "--hostiocache", "on", "--bootable", "on"] # like here: https://www.virtualbox.org/manual/ch08.html#vboxmanage-storagectl
+      # Ubuntu
+      vm_config.vm.box = settings[:box]
 
-    # vb.customize [
-    #   "modifyvm", :id,
-    #   "--memory", '2048',
-    #   "--natdnshostresolver1", "on"
-    # ]
+      # Vagrant can share the source directory using rsync, NFS, or SSHFS (with the vagrant-sshfs
+      # plugin). Consult the Vagrant documentation if you do not want to use SSHFS.
+      # Get's honored normally
+      # vm_config.vm.synced_folder '.', '/vagrant', disabled: true
+      # # But not the centos box
+      # vm_config.vm.synced_folder '.', '/home/vagrant/sync', disabled: true
 
-    # vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
-  end
+      # TODO: Should we try this???
+      # Change the permission of files and directories
+      # so that nosetests runs without extra arguments.
+      config.vm.synced_folder '.', '/vagrant', mount_options: ['dmode=775,fmode=664']
+      vm_config.vm.synced_folder '.', '/shared', type: 'nfs'
 
-  #### CHOOSE DESIRED OS:
-  # config.vm.box = "centos/7"
-  # config.vm.box = "centos/atomic-host" # NEVER TESTED
-  config.vm.box = 'ubuntu/xenial64'
+      # assign an ip address in the hosts network
+      vm_config.vm.network 'private_network', ip: settings[:ip]
 
-  # NODES:
-  (1..$num_instances).each do |i|
-    config.vm.define vm_name = format('%s-worker-%02d%s', $instance_name_prefix, i, $custom_networking_dnsDomain) do |node|
-      # node.vm.synced_folder ".vagrant", "/vagrant", type: "rsync" #, rsync__exclude: ".local_only" #rsync__include: ".vagrant/"
-      # node.vm.box = "centos/7"
-      # node.vm.box = "centos/atomic-host"
-      node.vm.hostname = vm_name
-      # node.ssh.host = vm_name
-      # node.vm.provision "shell", inline: "echo hello from %s" % [node.vm.hostname]
-      # node.vm.provision "shell" do |s|
-      # s.path= "dockerize.sh"  # no longer required, handled by ansible
-      # s.args= "node"
-      # end
+      vm_config.vm.hostname = settings[:hostname]
+
+      config.vm.provider 'virtualbox' do |v|
+        # make sure that the name makes sense when seen in the vbox GUI
+        v.name = settings[:hostname]
+
+        # Be nice to our users.
+        # v.customize ['modifyvm', :id, '--cpuexecutioncap', '50']
+        v.customize ['modifyvm', :id, '--memory', settings[:ram], '--cpus', settings[:cpu]]
+        v.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+        v.customize ['modifyvm', :id, '--chipset', 'ich9']
+
+        v.customize ['modifyvm', :id, '--ioapic', 'on'] # Bug 51473
+        v.customize ['modifyvm', :id, '--natdnshostresolver1', 'on']
+        v.customize ['modifyvm', :id, '--natdnsproxy1', 'on']
+        # Prevent clock drift, see http://stackoverflow.com/a/19492466/323407
+        v.customize ['guestproperty', 'set', :id, '/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold', 10_000]
+
+        # v.customize ['modifyvm', :id, '--usb', 'on']
+        # v.customize ['modifyvm', :id, '--audio', 'coreaudio', '--audiocontroller', 'ac97']
+        v.customize ['modifyvm', :id, '--audio', 'none']
+
+        # v.customize ["modifyvm", :id, "--natdnshostresolver2", "on"]
+      end
+
+      # If you want to create an array where each entry is a single word, you can use the %w{} syntax, which creates a word array:
+      # However, notice that the %w{} method lets you skip the quotes and the commas.
+      hostname_with_hyenalab_tld = "#{settings[:hostname]}.hyenalab.home"
+
+      aliases = [hostname_with_hyenalab_tld, settings[:hostname]]
+
+      if Vagrant.has_plugin?('vagrant-hostsupdater')
+        vm_config.hostsupdater.aliases = aliases
+      elsif Vagrant.has_plugin?('vagrant-hostmanager')
+        vm_config.hostmanager.enabled = true
+        vm_config.hostmanager.manage_host = true
+        vm_config.hostmanager.manage_guests = true
+        vm_config.hostmanager.ignore_private_ip = false
+        vm_config.hostmanager.include_offline = true
+        vm_config.hostmanager.aliases = aliases
+      end
 
       # TODO: Get rid of /etc/hosts bash script command
-      config.vm.provision 'shell' do |s|
+      vm_config.vm.provision 'shell' do |s|
         s.inline = <<-SHELL
-            if [ -f /vagrant_bootstrap ]; then
-              echo "vagrant_bootstrap EXISTS ALREADY"
-              exit 0
-            fi
-
-            sudo apt-get -y update
-            sudo apt-get -y install python-minimal python-apt
-            HOSTNAME=`hostname`; sudo sed -ri \"/127\.0\.0\.1.*$HOSTNAME.*/d\" /etc/hosts
-
-            cat /etc/hosts
-
-            DEBIAN_FRONTEND=noninteractive apt-get update; apt-get install -y \
-            sudo \
-            bash-completion \
-            curl \
-            git \
-            vim \
-          ; \
-                apt-get update \
-          ; \
-            DEBIAN_FRONTEND=noninteractive apt-get install -y python-six python-pip \
-          ; \
-          touch /vagrant_bootstrap && \
-          chown #{NON_ROOT_USER}:#{NON_ROOT_USER} /vagrant_bootstrap
-        SHELL
+              if [ -f /vagrant_bootstrap ]; then
+                echo "vagrant_bootstrap EXISTS ALREADY"
+                exit 0
+              fi
+              sudo apt-get -y update
+              sudo apt-get -y install python-minimal python-apt
+              HOSTNAME=`hostname`; sudo sed -ri \"/127\.0\.0\.1.*$HOSTNAME.*/d\" /etc/hosts
+              cat /etc/hosts
+              DEBIAN_FRONTEND=noninteractive apt-get update; apt-get install -y \
+              sudo \
+              bash-completion \
+              curl \
+              git \
+              vim \
+            ; \
+                  apt-get update \
+            ; \
+              DEBIAN_FRONTEND=noninteractive apt-get install -y python-six python-pip \
+            ; \
+            touch /vagrant_bootstrap && \
+            chown #{NON_ROOT_USER}:#{NON_ROOT_USER} /vagrant_bootstrap
+            SHELL
         s.privileged = true
       end # end - vm_config.vm.provision 'shell' do |s|
 
-      node.vm.provision 'shell', inline: <<-SHELL
-       sudo cp -rf ~vagrant/.ssh ~root/ || true  # This will allow us to ssh into root with existing vagrant key
-       sudo cp -rf ~ubuntu/.ssh ~root/ || true  # This will allow us to ssh into root with existing vagrant key
-       #chmod 755 /vagrant/dockerize.sh
-       #/vagrant/dockerize.sh
-      SHELL
-      # File.open("ssh_config", "w+") { |file| file.write("boo" ) }
+      # FIXME: DISABLED 11/30/2018 ... we don't want to do all of this stuff in shell scripts! Ansible should handle it all!
+      # Enable provisioning with a shell script. Additional provisioners such as
+      # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+      # documentation for more information about their specific syntax and use.
+      # vm_config.vm.provision 'shell' do |s|
+      #   s.inline = <<-SHELL
+      #     if [ -f /vagrant_bootstrap ]; then
+      #       echo "vagrant_bootstrap EXISTS ALREADY"
+      #       exit 0
+      #     fi
+
+      #     sudo apt-get update && sudo apt-get install python htop ncdu -y && sudo apt-get install -f
+
+      #     apt-get update
+      #     apt-get install -y \
+      #       apt-transport-https \
+      #       ca-certificates \
+      #       curl \
+      #       python3-pip \
+      #       software-properties-common
+      #     pip3 install virtualenv
+      #     echo vm.max_map_count=262144 > /etc/sysctl.d/vm_max_map_count.conf
+      #     sysctl --system
+      #     grep -qF "#{NON_ROOT_USER} - nofile 65536" /etc/security/limits.conf || echo "#{NON_ROOT_USER} - nofile 65536" >> /etc/security/limits.conf
+
+      #     echo vm.max_map_count=262144 > /etc/sysctl.d/vm_max_map_count.conf
+      #     sysctl --system
+      #     grep -qF '#{NON_ROOT_USER} - nofile 65536' /etc/security/limits.conf || echo '#{NON_ROOT_USER} - nofile 65536' >> /etc/security/limits.conf
+      #     grep -qF 'root - nofile 65536' /etc/security/limits.conf || echo 'root - nofile 65536' >> /etc/security/limits.conf
+
+      #     # NOTE: Improving Performance on Low-Memory Linux VMs
+      #     # NOTES: https://www.codero.com/knowledge-base/content/3/389/en/custom-swap-on-linux-virtual-machines.html
+      #     # size of swapfile in megabytes
+      #     swapsize=#{SWAPSIZE}
+
+      #     # does the swap file already exist?
+      #     grep -q "swapfile" /etc/fstab
+
+      #     # if not then create it
+      #     if [ $? -ne 0 ]; then
+      #       echo 'swapfile not found. Adding swapfile.'
+      #       fallocate -l ${swapsize}M /swapfile
+      #       chmod 600 /swapfile
+      #       mkswap /swapfile
+      #       swapon /swapfile
+      #       echo '/swapfile none swap defaults 0 0' >> /etc/fstab
+      #     else
+      #       echo 'swapfile found. No changes made.'
+      #     fi
+
+      #     # output results to terminal
+      #     df -h
+      #     cat /proc/swaps
+      #     cat /proc/meminfo | grep Swap
+
+      #     # https://www.codero.com/knowledge-base/content/3/388/en/improving-performance-on-low_memory-linux-vms.html
+      #     echo vm.swappiness = 10 >> /etc/sysctl.d/30-vm-swappiness.conf
+      #     echo vm.vfs_cache_pressure = 50 >> /etc/sysctl.d/30-vm-vfs_cache_pressure.conf
+      #     sysctl -p
+
+      #     DEBIAN_FRONTEND=noninteractive apt-get update; apt-get install -y \
+      #     sudo \
+      #     bash-completion \
+      #     apt-file \
+      #     autoconf \
+      #     automake \
+      #     gettext \
+      #     yelp-tools \
+      #     flex \
+      #     bison \
+      #     build-essential \
+      #     ccache \
+      #     curl \
+      #     git \
+      #     lcov \
+      #     libbz2-dev \
+      #     libffi-dev \
+      #     libreadline-dev \
+      #     libsqlite3-dev \
+      #     libssl-dev \
+      #     python3-pip \
+      #     vim \
+      #   ; \
+      #         apt-get update \
+      #   ; \
+      #     DEBIAN_FRONTEND=noninteractive apt-get install -y python-six python-pip \
+      #   ; \
+      #         rm -rf /var/lib/apt/lists/*
+
+      #   # FIXME: Get this into a role, systemctl 9/29/2018
+      #   apt-get update
+      #   apt-get install linux-headers-$(uname -r) -y
+      #   sysctl net.ipv4.tcp_available_congestion_control
+      #   echo net.core.default_qdisc=fq > /etc/sysctl.d/30-tcp_congestion_control.conf
+      #   echo net.ipv4.tcp_congestion_control=bbr >> /etc/sysctl.d/30-tcp_congestion_control.conf
+      #   sysctl -p
+
+      #   touch /vagrant_bootstrap && \
+      #   chown #{NON_ROOT_USER}:#{NON_ROOT_USER} /vagrant_bootstrap
+      #   SHELL
+      #   s.privileged = true
+      # end
+
+      # FIXME: Get this into a role, ansible install bcc 9/29/2018
+      #   vm_config.vm.provision 'shell' do |s|
+      #     s.inline = <<-SHELL
+      #     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys D4284CDD
+      #     echo "deb https://repo.iovisor.org/apt/bionic bionic main" | tee /etc/apt/sources.list.d/iovisor.list
+      #     apt-get update
+      #     apt-get install bcc-tools libbcc-examples linux-headers-$(uname -r) -y
+      #     SHELL
+      #     s.privileged = true
+      #   end
+
+      # vm_config.vm.provision :ansible do |ansible|
+      #   ansible.host_key_checking	= 'false'
+      #   # Disable default limit to connect to all the machines
+      #   ansible.limit = 'all'
+      #   ansible.playbook = 'vagrant_playbook.yml'
+      #   ansible.groups = config_yml[:groups]
+      #   ansible.verbose = 'vvv'
+      #   ansible.extra_vars = {
+      #     deploy_env: 'vagrant'
+      #   }
+      #   # ansible.skip_tags = %w[bootstrap]
+      #   ansible.raw_arguments = ['--forks=10']
+      # end
     end
   end
-
-  # MASTER:
-  config.vm.define vm_name = format('%s-master-01%s', $instance_name_prefix, $custom_networking_dnsDomain), primary: true do |nfsmaster|
-    # nfsmaster.vm.synced_folder ".vagrant", "/vagrant", type: "rsync" #, rsync__exclude: ".local_only" #rsync__include: ".vagrant/"
-    # nfsmaster.vm.hostname = "#{nfsmaster}"
-    # nfsmaster.vm.hostname = "%s" % [ nfsmaster ]
-    nfsmaster.vm.hostname = vm_name
-    # nfsmaster.ssh.host = vm_name
-    # nfsmaster.vm.network "forwarded_port", guest: 80, host: 2080, auto_correct: true
-    # nfsmaster.vm.network "forwarded_port", guest: 443, host: 2443, auto_correct: true
-
-    # TODO: Get rid of /etc/hosts bash script command
-    config.vm.provision 'shell' do |s|
-      s.inline = <<-SHELL
-          if [ -f /vagrant_bootstrap ]; then
-            echo "vagrant_bootstrap EXISTS ALREADY"
-            exit 0
-          fi
-
-          sudo apt-get -y update
-          sudo apt-get -y install python-minimal python-apt
-          HOSTNAME=`hostname`; sudo sed -ri \"/127\.0\.0\.1.*$HOSTNAME.*/d\" /etc/hosts
-
-          cat /etc/hosts
-
-          DEBIAN_FRONTEND=noninteractive apt-get update; apt-get install -y \
-          sudo \
-          bash-completion \
-          curl \
-          git \
-          vim \
-        ; \
-              apt-get update \
-        ; \
-          DEBIAN_FRONTEND=noninteractive apt-get install -y python-six python-pip \
-        ; \
-        touch /vagrant_bootstrap && \
-        chown #{NON_ROOT_USER}:#{NON_ROOT_USER} /vagrant_bootstrap
-      SHELL
-      s.privileged = true
-    end # end - vm_config.vm.provision 'shell' do |s|
-
-    # nfsmaster.vm.provision :shell, inline: "echo hello from %s" % [nfsmaster.vm.hostname]
-    # nfsmaster.vm.provision "shell" do |s|
-    # s.path= "dockerize.sh"  # no longer required, handled by ansible
-    # s.args= "master"
-    # end
-
-    nfsmaster.vm.provision 'shell', inline: <<-SHELL
-     sudo cp -rf ~vagrant/.ssh ~root/ || true  # This will allow us to ssh into root with existing vagrant key
-     sudo cp -rf ~ubuntu/.ssh ~root/ || true # This will allow us to ssh into root with existing vagrant key
-     #chmod 755 /vagrant/dockerize.sh
-     #/vagrant/dockerize.sh
-     # curl -SL https://github.com/ReSearchITEng/kubeadm-playbook/archive/master.tar.gz | tar xvz # already in /vagrant
-    SHELL
-  end
-
-  # Disable automatic box update checking. If you disable this, then
-  # boxes will only be checked for updates when the user runs
-  # `vagrant box outdated`. This is not recommended.
-  # config.vm.box_check_update = false
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
-
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  # config.vm.network "private_network", ip: "192.168.33.10"
-
-  # Create a public network, which generally matched to bridged network.
-  # Bridged networks make the machine appear as another physical device on
-  # your network.
-  # config.vm.network "public_network"
-
-  # Share an additional folder to the guest VM. The first argument is
-  # the path on the host to the actual folder. The second argument is
-  # the path on the guest to mount the folder. And the optional third
-  # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
-
-  # Provider-specific configuration so you can fine-tune various
-  # backing providers for Vagrant. These expose provider-specific options.
-  # Example for VirtualBox:
-  #
-  # config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-  #   vb.gui = true
-  #
-  #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
-  #
-  # View the documentation for the provider you are using for more
-  # information on available options.
-
-  # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
-  # such as FTP and Heroku are also available. See the documentation at
-  # https://docs.vagrantup.com/v2/push/atlas.html for more information.
-  # config.push.define "atlas" do |push|
-  #   push.app = "YOUR_ATLAS_USERNAME/YOUR_APPLICATION_NAME"
-  # end
-
-  # Enable provisioning with a shell script. Additional provisioners such as
-  # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
-  # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   sudo apt-get update
-  #   sudo apt-get install -y apache2
-  # SHELL
 end

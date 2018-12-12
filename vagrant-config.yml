@@ -1,25 +1,35 @@
 # https://gist.github.com/gnarf/b103e77f37236ca72d8e
 :vms:
-  debug1:
-    :hostname: "debug1"
-    :ip: "192.168.23.100"
-    :ram: 1024
+  nfs-master1:
+    :hostname: "nfs-master1"
+    :ip: "192.168.50.101"
+    :ram: 2048
     :cpu: 2
-    # :box: "debian/stretch64"
     :box: "ubuntu/xenial64"
     :id: 10
 
+  nfs-worker1:
+    :hostname: "nfs-worker1"
+    :ip: "192.168.50.102"
+    :ram: 2048
+    :cpu: 2
+    :box: "ubuntu/xenial64"
+    :id: 11
+
 :groups:
-  debug1:
-    - debug1
-  # docker2:
-  #   - docker2
-  docker_servers:
-    - debug1
-    # - docker2
+  nfs-master1:
+    - nfs-master1
+  slaves:
+    - nfs-worker1
+  agents:
+    - nfs-worker1
   servers:
-    - debug1
-    # - docker2
-  dns_servers:
-    - debug1
-    # - docker2
+    - nfs-master1
+    - nfs-worker1
+  kubernetes-nfs-master1:
+    - nfs-master1
+  kubernetes-workers:
+    - nfs-worker1
+  kubernetes:
+    - nfs-master1
+    - nfs-worker1

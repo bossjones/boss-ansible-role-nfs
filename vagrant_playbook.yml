@@ -1,46 +1,30 @@
 ---
-- name: provision docker on both vagrant guest machines
-  hosts: servers
-  become: True
+##############################################################################
+# SERVERS: Install and configure ntp
+##############################################################################
+- hosts: servers
+  name: (servers) - Install and configure ntp
   gather_facts: True
+  become: yes
   become_method: sudo
+  environment:
+    DEBIAN_FRONTEND: noninteractive
   vars:
-    boss__debug__debug_variables_file: '/etc/ansible_variables'
-    boss__debug__dump_dir: '/etc/ansible_dumps'
-    boss__debug__dump_type: 'seperate' # seperate
-  # pre_tasks:
-  #   # - name: Update apt cache.
-  #   #   apt: update_cache=yes cache_valid_time=600
-  #   #   when: ansible_os_family == 'Debian'
-
-  #   - name: "debug: special ansible var 'vars':"
-  #     debug: var={{ vars | to_nice_json }}
-  #     changed_when: false
-
-  # #   # - name: Add test user
-  # #   #   user:
-  # #   #     name: "test"
-  # #   #     shell: "/bin/bash"
-
-  # # {{ vars | to_nice_json }}
+    boss__ntp__timezone: 'America/New_York'
+  tags:
+    - docker
+    - docker-provision
+    - worker
+    - install
+    - worker_install
+    - ha
+    - ntp
+    - slow
 
   roles:
-    # - role: boss-ansible-role-bootstrap
-    #   # Disable raw commands to avoid sudo issues.
-    #   boss__bootstrap_raw: False
-    #   # Don't set domain on Travis.
-    #   boss__bootstrap_domain: ''
-    #   # Try bootstrapping a different IP address to avoid idempotency loop.
-    #   # boss__bootstrap_ipv4: '127.0.1.2'
-    #   # boss__hosts_file: /etc/hosts.molecule
-    #   boss__bootstrap_admin_default_users:
-    #     - name: bossjones
-    #   boss__bootstrap_admin_groups: [ 'admins', 'staff', 'adm', 'sudo', 'bossjones' ]
-    #   boss__bootstrap_admin_system: False
-    # - role: boss-ansible-role-core
-    # - role: boss-ansible-role-fact
-    # - role: boss-ansible-role-environment
     - role: ../
-      boss__debug__debug_variables_file: '/etc/ansible_variables'
-      boss__debug__dump_dir: '/etc/ansible_dumps'
-      boss__debug__dump_type: 'seperate' # seperate
+      tags: [ 'worker', 'install', 'worker_install', 'ntp']
+      task: prepare-ntpd
+      boss__ntp__timezone: 'America/New_York'
+      boss__kubernetes__kubeadm__master_node_ip: '192.168.1.241'
+      boss__kubernetes__kubeadm__kubernetes_interface: 'enp0s3'
