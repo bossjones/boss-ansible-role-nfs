@@ -203,10 +203,10 @@ bridge-halt:
 	vagrant halt
 
 ssh-bridge-master:
-	ssh -F ./ssh_config nfs-master-01.scarlettlab.home
+	ssh -vvvv -F ./ssh_config nfs-master-01.scarlettlab.home
 
 ssh-bridge-worker:
-	ssh -F ./ssh_config nfs-worker-01.scarlettlab.home
+	ssh -vvvv -F ./ssh_config nfs-worker-01.scarlettlab.home
 
 ping-bridge:
 	@ansible-playbook -v -i hosts ping.yml
@@ -219,6 +219,9 @@ run-bridge-test-ansible:
 
 run-bridge-tools-ansible:
 	@ansible-playbook -i hosts tools.yml -v
+
+run-bridge-ping-ansible:
+	@ansible-playbook -i hosts ping.yml -v
 
 run-bridge-log-iptables-ansible:
 	@ansible-playbook -i hosts log_iptables.yml -v
