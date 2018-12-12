@@ -1,0 +1,569 @@
+##############################################################################
+# Install prereqs for perf/tools
+##############################################################################
+# # no_log: true
+- hosts: servers
+  vars:
+    go_version: "1.10"
+  gather_facts: True
+  become: yes
+  become_method: sudo
+  tags:
+    - prereqs
+    - perf
+    - perf_tools
+    - tools
+    - servers
+  pre_tasks:
+
+  - name: Set system architecture for AMD64/x86_64
+    set_fact:
+      sys_arch: "amd64"
+    when: ansible_architecture is match("x86_64") or (ansible_architecture | lower) is match("amd64")
+
+  - name: Set system architecture for i386/x86
+    set_fact:
+      sys_arch: "386"
+    when: ansible_architecture is match("i386")
+
+  - name: Set system architecture for ARM64
+    set_fact:
+      sys_arch: "arm64"
+    when: ansible_architecture is match("arm64")
+
+  - name: Set system architecture for ARMv7
+    set_fact:
+      sys_arch: "armv7"
+    when: ansible_architecture is match("armv7.+")
+
+  - name: Set system architecture for ARMv6
+    set_fact:
+      sys_arch: "armv6"
+    when: ansible_architecture is match("armv6.+")
+
+  - name: Set system architecture for ARMv5
+    set_fact:
+      sys_arch: "armv5"
+    when: ansible_architecture is match("armv5.+")
+
+  - name: Set system architecture for ansible var apt_arch
+    set_fact:
+      apt_arch: "{{sys_arch}}"
+
+  - name: install go
+    unarchive:
+      src: 'https://storage.googleapis.com/golang/go{{ go_version }}.linux-{{ sys_arch }}.tar.gz'
+      remote_src: yes
+      dest: /usr/local
+      mode: 0777
+      creates: /usr/local/go/bin/go
+
+  # export PATH=$PATH:/usr/local/go/bin:${HOME}/go/bin
+  - name: set go env. vars. and add go to path
+    blockinfile:
+      dest: '$HOME/.bashrc'
+      block: |
+        export PATH=$PATH:/usr/local/go/bin
+        export GOPATH=$HOME
+      state: present
+      create: yes
+      mode: 0644
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+  # - name: source ~/.bashrc from ~/.bash_profile
+  #   lineinfile:
+  #     dest: '$HOME/.bash_profile'
+  #     line: '[ -r $HOME/.bashrc ] && source $HOME/.bashrc'
+  #     state: present
+  #     create: yes
+  #     mode: 0644
+  #   become: '{{ item }}'
+  #   with_items:
+  #     - true  # Run as root
+  #     - false # Run as SSH user
+
+  - name: set fact env_go
+    set_fact:
+      env_go: '{{ env_go |default({}) | combine ({"PATH" : "/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/local/go/bin"  }) | combine ({"GOPATH" :"$HOME"}) }}'
+
+  # # NOTE: fast way to switch between clusters and namespaces in kubectl
+  # - name: install kubens - fast way to switch between clusters and namespaces in kubectl
+  #   shell: |
+  #     curl -L 'https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens' > /usr/local/bin/kubens
+  #     chmod +x /usr/local/bin/kubens
+  #   become: yes
+  #   become_method: sudo
+  #   args:
+  #     executable: /bin/bash
+  #     creates: /usr/local/bin/kubens
+
+  - name: install fzy - A better fuzzy finder
+    shell: |
+      curl -L 'https://github.com/jhawthorn/fzy/releases/download/0.9/fzy_0.9-1_amd64.deb' > /usr/local/src/fzy_0.9-1_amd64.deb
+      apt install -y /usr/local/src/fzy_0.9-1_amd64.deb
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/fzy
+
+#   wget https://github.com/jhawthorn/fzy/releases/download/0.9/fzy_0.9-1_amd64.deb
+# $ sudo dpkg -i fzy_0.9-1_amd64.deb
+
+  - name: "Install ubuntu-make"
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+        - ubuntu-make
+
+  - name: "Install prereq tools"
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+        - nethogs
+        - ccze
+        - htop
+        - silversearcher-ag
+        - netcat
+        - nmap
+        - netperf
+        - ngrep
+        - unzip
+        - nload
+        - jq
+        - ncdu
+        - traceroute
+        - sysstat
+        # - ssldump
+        # - sslsplit
+        - conntrack
+        # NOTE: RUN THIS GUY
+        - mtr
+        - tmux
+        # SOURCE: https://www.tecmint.com/test-network-throughput-in-linux/
+        - iperf3
+        # SOURCE: https://www.tecmint.com/tcpflow-analyze-debug-network-traffic-in-linux/
+        - tcpflow
+        # SOURCE: https://www.tecmint.com/linux-network-bandwidth-monitoring-tools/
+        - iftop
+
+  # SOURCE: https://gist.github.com/kometchtech/c5681b2a70b30c99bf7e834ffb3abba5
+  - name: "Install dnsperf prereqs"
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+        - bind9utils
+        - libbind-dev
+        - libkrb5-dev
+        - libssl-dev
+        - libcap-dev
+        - libxml2-dev
+        - geoip-bin
+        - libgeoip-dev
+        - build-essential
+        - curl
+        # REQUIRED: https://www.tecmint.com/hegemon-system-monitoring-tool-for-linux/
+        - libsensors4-dev
+
+  - name: check if /usr/bin/sysdig exists
+    stat:
+      path: /usr/bin/sysdig
+    register: sysdig_result
+    failed_when: false
+    changed_when: false
+    tags:
+      - slow
+
+  - name: "SYSDIG: curl -s https://s3.amazonaws.com/download.draios.com/stable/install-sysdig | sudo bash ONLY if it is not installed already"
+    shell: |
+      bash -lc "curl -s https://s3.amazonaws.com/download.draios.com/stable/install-sysdig | sudo bash"
+    args:
+      executable: /bin/bash
+    when: not sysdig_result.stat.exists
+    tags:
+      - slow
+
+  - name: check if /usr/local/bin/cargo exists
+    stat:
+      path: /usr/local/bin/cargo
+    register: cargo_result
+    failed_when: false
+    changed_when: false
+    tags:
+      - slow
+
+  - name: "RUST: curl -sSf https://static.rust-lang.org/rustup.sh | sh ONLY if it is not installed already"
+    shell: |
+      bash -lc "curl -sSf https://static.rust-lang.org/rustup.sh | sh"
+    args:
+      executable: /bin/bash
+    when: not cargo_result.stat.exists
+    tags:
+      - slow
+
+  - name: install ctop
+    shell: |
+      curl -L 'https://github.com/bcicen/ctop/releases/download/v0.7.1/ctop-0.7.1-linux-amd64' > /usr/local/bin/ctop
+      chmod +x /usr/local/bin/ctop
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/ctop
+
+    # https://github.com/wercker/stern/releases/download/1.10.0/stern_linux_amd64
+
+    # https://github.com/bcicen/ctop/releases/download/v0.7.1/ctop-0.7.1-linux-amd64
+
+  # NOTE: Multi pod and container log tailing for Kubernetes
+  - name: install stern
+    shell: |
+      curl -L 'https://github.com/wercker/stern/releases/download/1.10.0/stern_linux_amd64' > /usr/local/bin/stern
+      chmod +x /usr/local/bin/stern
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/stern
+
+  - name: Add source <(stern --completion=bash) to root/ssh user bashrc
+    lineinfile:
+      path: '$HOME/.bashrc'
+      line: 'source <(stern --completion=bash)'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+  # An interactive kubernetes client featuring auto-complete using go-prompt.
+  - name: install kube-prompt
+    shell: |
+      wget https://github.com/c-bata/kube-prompt/releases/download/v1.0.5/kube-prompt_v1.0.5_linux_amd64.zip
+      unzip kube-prompt_v1.0.5_linux_amd64.zip
+      chmod +x kube-prompt
+      sudo mv ./kube-prompt /usr/local/bin/kube-prompt
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/kube-prompt
+
+  # An interactive kubernetes client featuring auto-complete using go-prompt.
+  # https://github.com/boz/kail/releases/download/v0.7.0/kail_0.7.0_linux_amd64.tar.gz
+  - name: install kail
+    shell: |
+      wget https://github.com/boz/kail/releases/download/v0.7.0/kail_0.7.0_linux_amd64.tar.gz
+      tar xvf kail_0.7.0_linux_amd64.tar.gz
+      chmod +x kail
+      mv ./kail /usr/local/bin/kail
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/kail
+
+  # Simplistic interactive filtering tool
+  - name: install peco
+    shell: |
+      wget https://github.com/peco/peco/releases/download/v0.5.3/peco_linux_amd64.tar.gz ;
+      tar xvf peco_linux_amd64.tar.gz ;
+      mv peco_linux_amd64/peco /usr/local/bin/peco ;
+      chmod +x /usr/local/bin/peco ;
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/peco
+
+  # https://github.com/pulumi/kubespy/releases/download/v0.4.0/kubespy-linux-amd64.tar.gz
+
+  # kubespy - Tools for observing Kubernetes resources in real time, powered by Pulumi
+  - name: install kubespy - Tools for observing Kubernetes resources in real time, powered by Pulumi
+    shell: |
+      wget https://github.com/pulumi/kubespy/releases/download/v0.4.0/kubespy-linux-amd64.tar.gz ;
+      tar xvf kubespy-linux-amd64.tar.gz ;
+      mv releases/kubespy-linux-amd64/kubespy /usr/local/bin/kubespy ;
+      chmod +x /usr/local/bin/kubespy ;
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/kubespy
+
+  # kubetail
+  - name: install kubetail
+    shell: |
+      curl -L 'https://raw.githubusercontent.com/johanhaleby/kubetail/master/kubetail' > /usr/local/bin/kubetail ;
+      chmod +x /usr/local/bin/kubetail ;
+      curl -L 'https://raw.githubusercontent.com/johanhaleby/kubetail/master/completion/kubetail.bash' > /etc/bash_completion.d/kubetail ;
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/kubetail
+
+  # https://raw.githubusercontent.com/johanhaleby/kubetail/master/kubetail
+
+  # https://github.com/peco/peco/releases/download/v0.5.3/peco_linux_amd64.tar.gz
+
+  - name: Install kube-shell
+    pip:
+      name: "kube-shell"
+
+  # NOTE: fast way to switch between clusters and namespaces in kubectl
+  - name: install kubectx - fast way to switch between clusters and namespaces in kubectl
+    shell: |
+      curl -L 'https://raw.githubusercontent.com/ahmetb/kubectx/master/kubectx' > /usr/local/bin/kubectx
+      chmod +x /usr/local/bin/kubectx
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/kubectx
+
+  - name: install kubebox - Terminal and Web console for Kubernetes
+    shell: |
+      curl -L 'https://github.com/astefanutti/kubebox/releases/download/v0.3.2/kubebox-linux' > /usr/local/bin/kubebox
+      chmod +x /usr/local/bin/kubebox
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/kubebox
+
+  # kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default
+
+
+  # curl -Lo kubebox https://github.com/astefanutti/kubebox/releases/download/v0.3.2/kubebox-linux && chmod +x kubebox
+
+  # NOTE: fast way to switch between clusters and namespaces in kubectl
+  - name: install kubens - fast way to switch between clusters and namespaces in kubectl
+    shell: |
+      curl -L 'https://raw.githubusercontent.com/ahmetb/kubectx/master/kubens' > /usr/local/bin/kubens
+      chmod +x /usr/local/bin/kubens
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/kubens
+
+  # MORE TOOLS FROM: https://medium.com/@jonyeezs/my-minimal-over-powered-linux-setup-guide-710931efb75b
+
+  - name: install fzf for root and default user
+    shell: |
+      git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+      ~/.fzf/install --all
+    become: '{{ item }}'
+    args:
+      executable: /bin/bash
+      creates: '$HOME/.fzf'
+    with_items:
+      - true  # Run as root
+      - false
+    tags:
+    - fzf
+
+
+  - name: install fzf for root and default user
+    shell: |
+      git clone https://github.com/b4b4r07/enhancd ~/.enhancd
+    become: '{{ item }}'
+    args:
+      executable: /bin/bash
+      creates: '$HOME/.enhancd'
+    with_items:
+      - true  # Run as root
+      - false
+    tags:
+    - enhanced
+
+# $ echo 'source ~/.enhancd/init.sh' >> ~/.zshrc
+# $ echo 'ENHANCD_FILTER=fzy:fzf; export ENHANCD_FILTER' >> ~/.zshrc
+# $ echo "ENHANCD_HOOK_AFTER_CD='ls -A';export ENHANCD_HOOK_AFTER_CD" >> ~/.zshrc
+
+  - name: source ~/.enhancd/init.sh to root/ssh user bashrc
+    lineinfile:
+      path: '$HOME/.bashrc'
+      line: 'source ~/.enhancd/init.sh'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+
+  - name: "ENHANCD_FILTER=fzy:fzf; export ENHANCD_FILTER to root/ssh user bashrc"
+    lineinfile:
+      path: '$HOME/.bashrc'
+      line: 'ENHANCD_FILTER=fzy:fzf; export ENHANCD_FILTER'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+  - name: "ENHANCD_HOOK_AFTER_CD='ls -A';export ENHANCD_HOOK_AFTER_CD to root/ssh user bashrc"
+    lineinfile:
+      path: '$HOME/.bashrc'
+      line: "ENHANCD_HOOK_AFTER_CD='ls -A';export ENHANCD_HOOK_AFTER_CD"
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+
+
+
+  - name: install tldr - Simplified and community-driven man pages
+    shell: |
+      curl -L 'https://raw.githubusercontent.com/raylee/tldr/master/tldr' > /usr/local/bin/tldr
+      chmod +x /usr/local/bin/tldr
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/tldr
+
+  # git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+  # ~/.fzf/install --all
+
+  # - name: install gkill - Simplified and community-driven man pages
+  #   shell: |
+  #     umake go
+  #     go get github.com/heppu/gkill
+  #   # environment: '{{env_go}}'
+  #   environment:
+  #     GOROOT: /usr/local/go
+  #     GOPATH: /root
+  #     GO111MODULE: ""
+  #     PATH: "/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/usr/local/go/bin"
+
+  #   become: yes
+  #   become_method: sudo
+  #   args:
+  #     executable: /bin/bash
+  #     creates: /usr/local/go/bin/gkill
+
+  - name: install gkill - Interactice process killer for Linux and macOS
+    shell: |
+      curl -L 'https://github.com/heppu/gkill/releases/download/v1.0.2/gkill-linux-amd64' > /usr/local/bin/gkill
+      chmod +x /usr/local/bin/gkill
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/gkill
+
+  # https://github.com/heppu/gkill/releases/download/v1.0.2/gkill-linux-amd64
+
+  - name: install grv - GRV — Git Repository Viewer
+    shell: |
+      curl -L 'https://github.com/rgburke/grv/releases/download/v0.1.2/grv_v0.1.2_linux64' > /usr/local/bin/grv
+      chmod +x /usr/local/bin/grv
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /usr/local/bin/grv
+
+  - name: Add repositories
+    apt_repository:
+      repo: 'ppa:dawidd0811/neofetch'
+      state: present
+      update_cache: yes
+    when: ansible_os_family == "Debian"
+
+  - name: "Install neofetch"
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+        - neofetch
+
+  - name: install tmux bash completion
+    shell: |
+      curl -L 'https://raw.githubusercontent.com/Bash-it/bash-it/master/completion/available/tmux.completion.bash' > /etc/bash_completion.d/tmux ;
+    become: yes
+    become_method: sudo
+    args:
+      executable: /bin/bash
+      creates: /etc/bash_completion.d/tmux
+
+  # https://raw.githubusercontent.com/Bash-it/bash-it/master/completion/available/tmux.completion.bash
+
+  # $ sudo add-apt-repository ppa:dawidd0811/neofetch
+  # $ sudo apt update && sudo apt install neofetch
+
+  # Dockly
+  # If you use Docker, here’s one for you. You get to see all your containers, their health and as well their logs. Check out their repo for a gif demo.
+  # npm install -g dockly
+
+  # env_go
+  # ALL THESE TOOLS CAME FROM: https://medium.com/@jonyeezs/my-minimal-over-powered-linux-setup-guide-710931efb75b
+
+  ##############################################################################
+  # Install osquery
+  ##############################################################################
+  # $ export OSQUERY_KEY=1484120AC4E9F8A1A577AEEE97A80C63C9D8B80B
+  # $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $OSQUERY_KEY
+  # $ sudo add-apt-repository 'deb [arch=amd64] https://pkg.osquery.io/deb deb main'
+  # $ sudo apt update
+  # $ sudo apt install osquery
+
+
+  # SOURCE: https://medium.com/@jonyeezs/my-minimal-over-powered-linux-setup-guide-710931efb75b
+  # $ git clone https://github.com/b4b4r07/enhancd ~/.enhancd
+  # $ echo 'source ~/.enhancd/init.sh' >> ~/.bashrc
+  # $ echo 'ENHANCD_FILTER=fzy:fzf; export ENHANCD_FILTER' >> ~/.bashrc
+  # $ echo "ENHANCD_HOOK_AFTER_CD='ls -A';export ENHANCD_HOOK_AFTER_CD" >> ~/.bashrc
+
+  - name: Install cheat
+    pip:
+      name: "cheat"
+
+
+  - name: install ~/.cheat for root and default user
+    shell: |
+      git clone https://github.com/bossjones/boss-cheatsheets ~/.cheat
+      curl 'https://raw.githubusercontent.com/chrisallenlane/cheat/master/cheat/autocompletion/cheat.bash' > /etc/bash_completion.d/cheat ;
+    become: '{{ item }}'
+    args:
+      executable: /bin/bash
+      creates: '$HOME/.cheat'
+    with_items:
+      - true  # Run as root
+      - false
+    tags:
+    - cheat
+
+  - name: Install cheat
+    pip:
+      name: "cheat"
+
+  # https://github.com/nodesource/distributions/blob/master/README.md
+  - name: install node version v11.4.0
+    shell: |
+      curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
+      apt-get install -y nodejs
+      apt-get install -y gcc g++ make
+      npm install -g docker-loghose
+      npm install -g docker-enter
+    become: '{{ item }}'
+    args:
+      executable: /bin/bash
+      creates: '/usr/bin/npm'
+    with_items:
+      - true  # Run as root
+    tags:
+    - node
+    - npm
+
+# TODO: Install
