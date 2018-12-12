@@ -8,8 +8,6 @@
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 
-# vagrant plugin install vagrant-dnsmasq
-
 NON_ROOT_USER = 'vagrant'.freeze
 
 $instance_name_prefix = 'nfs'
@@ -29,20 +27,6 @@ Vagrant.configure(2) do |config|
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
-
-  # config.dnsmasq.domain = $custom_networking_dnsDomain
-  # config.dnsmasq.domain = '.vbox.k8s.ap'
-
-  # brew_prefix = `brew --prefix`.strip
-  # config.dnsmasq.dnsmasqconf = brew_prefix + '/etc/dnsmasq.conf'
-
-  # config.dnsmasq.reload_command = 'sudo brew services restart dnsmasq'
-
-  # config.dnsmasq.keep_resolver_on_destroy = true
-
-  # config.dnsmasq.resolver = '/etc/resolver'
-
-  config.dnsmasq.disable = true
 
   # set auto_update to false, if you do NOT want to check the correct
   # additions version when booting this machine
@@ -127,13 +111,6 @@ Vagrant.configure(2) do |config|
         s.privileged = true
       end # end - vm_config.vm.provision 'shell' do |s|
 
-      config.dnsmasq.ip = proc do |guest_machine|
-        guest_machine.communicate.sudo("ifconfig enp0s | grep 'inet addr' | cut -d ':' -f 2 | cut -d ' ' -f 1") do |_type, data|
-          # return something like '192.168.59.100' or ['192.168.59.100', '192.168.59.103']
-          config.dnsmasq.ip = data
-        end
-      end
-
       node.vm.provision 'shell', inline: <<-SHELL
        sudo cp -rf ~vagrant/.ssh ~root/ || true  # This will allow us to ssh into root with existing vagrant key
        sudo cp -rf ~ubuntu/.ssh ~root/ || true  # This will allow us to ssh into root with existing vagrant key
@@ -184,13 +161,6 @@ Vagrant.configure(2) do |config|
       SHELL
       s.privileged = true
     end # end - vm_config.vm.provision 'shell' do |s|
-
-    config.dnsmasq.ip = proc do |guest_machine|
-      guest_machine.communicate.sudo("ifconfig enp0s | grep 'inet addr' | cut -d ':' -f 2 | cut -d ' ' -f 1") do |_type, data|
-        # return something like '192.168.59.100' or ['192.168.59.100', '192.168.59.103']
-        config.dnsmasq.ip = data
-      end
-    end
 
     # nfsmaster.vm.provision :shell, inline: "echo hello from %s" % [nfsmaster.vm.hostname]
     # nfsmaster.vm.provision "shell" do |s|
