@@ -2,6 +2,53 @@
 ##############################################################################
 # SERVERS: Install and configure ntp
 ##############################################################################
+- hosts: servers
+  name: servers install etckeeper
+  gather_facts: True
+  become: yes
+  become_method: sudo
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  tags:
+    - servers
+    - install
+    - servers_install
+    - etckeeper
+  pre_tasks:
+  - name: "Install prereq tools"
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+        - nethogs
+        - ccze
+        - htop
+        - silversearcher-ag
+        - netcat
+        - nmap
+        - netperf
+        - ngrep
+        - unzip
+        - nload
+        - jq
+        - ncdu
+        - traceroute
+        - sysstat
+        # - ssldump
+        # - sslsplit
+        - conntrack
+        # NOTE: RUN THIS GUY
+        - mtr
+        - tmux
+        # SOURCE: https://www.tecmint.com/test-network-throughput-in-linux/
+        - iperf3
+        # SOURCE: https://www.tecmint.com/tcpflow-analyze-debug-network-traffic-in-linux/
+        - tcpflow
+        # SOURCE: https://www.tecmint.com/linux-network-bandwidth-monitoring-tools/
+        - iftop
+  roles:
+    - role: boss-ansible-role-etckeeper
+
 - hosts: masters
   name: (masters) - Install and configure nfs
   gather_facts: True

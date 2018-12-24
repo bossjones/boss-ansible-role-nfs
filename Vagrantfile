@@ -38,8 +38,8 @@ Vagrant.configure(2) do |config|
       # TODO: Should we try this???
       # Change the permission of files and directories
       # so that nosetests runs without extra arguments.
-      config.vm.synced_folder '.', '/vagrant', mount_options: ['dmode=775,fmode=664']
-      vm_config.vm.synced_folder '.', '/shared', type: 'nfs'
+      # config.vm.synced_folder '.', '/vagrant', mount_options: ['dmode=775,fmode=664']
+      # vm_config.vm.synced_folder '.', '/shared', type: 'nfs'
 
       # assign an ip address in the hosts network
       vm_config.vm.network 'private_network', ip: settings[:ip]
