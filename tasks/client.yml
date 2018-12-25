@@ -20,6 +20,33 @@
     # mode: 0777
   with_items: "{{ boss__nfs__nfs_exports }}"
 
+- name: Ensure systemd directory exists
+  file:
+    path: "/etc/systemd/system"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Ensure /etc/default directory exists
+  file:
+    path: "/etc/default"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Generate /etc/default/nfs-common file
+  template:
+    src: "etc/default/nfs-common.j2"
+    dest: "/etc/default/nfs-common"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+  - run exportfs to export or unexport all directories
+  - Restart nfs-kernel-server
+  register: boss__nfs__etc_default_nfs_common
 
 # - name: create nfs share directories
 #   file:
@@ -63,3 +90,13 @@
 #     path: /mnt/ontap
 #     src: "172.32.0.184:/{{ volname }}"
 #     fstype: nfs
+
+# SOURCE: https://sysadmins.co.za/setup-a-nfs-server-and-client-on-the-raspberry-pi/
+# $ sudo exportfs -ra
+# $ showmount -e 192.168.1.2
+# $ sudo systemctl enable rpcbind
+# $ sudo systemctl enable nfs-kernel-server
+# $ sudo systemctl enable nfs-common
+# $ sudo systemctl start rpcbind
+# $ sudo systemctl start nfs-kernel-server
+# $ sudo systemctl start nfs-common

@@ -69,6 +69,98 @@
   - Restart nfs-kernel-server
   register: nfs_exports_result
 
+# --------------------------------------------------------------------------------------
+# --------------------------------[NFS SYSTEMD OVERRIDES]-------------------------------
+# --------------------------------------------------------------------------------------
+
+- name: Ensure systemd directory exists
+  file:
+    path: "/etc/systemd/system"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Ensure /etc/default directory exists
+  file:
+    path: "/etc/default"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Generate /etc/default/nfs-kernel-server file
+  template:
+    src: "etc/default/nfs-kernel-server.j2"
+    dest: "/etc/default/nfs-kernel-server"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+  - run exportfs to export or unexport all directories
+  - Restart nfs-kernel-server
+  register: boss__nfs__etc_default_nfs_kernel_server
+
+- name: Ensure /etc/systemd/system/nfs-kernel-server.service.d directory exists
+  file:
+    path: "/etc/systemd/system/nfs-kernel-server.service.d"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Generate systemd unit file
+  template:
+    src: "etc/systemd/system/nfs-kernel-server.service.j2"
+    dest: "/etc/systemd/system/nfs-kernel-server.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+  - run exportfs to export or unexport all directories
+  - Restart nfs-kernel-server
+  register: boss__nfs__nfs_register_systemd_service
+
+- name: Configure custom systemd unit file override
+  template:
+    src: "etc/systemd/system/nfs-kernel-server.service.d/limits.conf.j2"
+    dest: "/etc/systemd/system/nfs-kernel-server.service.d/limits.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+  - run exportfs to export or unexport all directories
+  - Restart nfs-kernel-server
+  register: boss__nfs__register_limits_override
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: true
+  when: (boss__nfs__nfs_register_conf_file|default() and
+         boss__nfs__nfs_register_conf_file is changed)
+         or (boss__nfs__register_limits_override|default() and
+         boss__nfs__register_limits_override is changed)
+  notify: ["Restart nfs-kernel-server"]
+
+# SOURCE: https://raymii.org/s/tutorials/Ansible_-_Only_if_a_file_exists_or_does_not_exist.html
+- name: stat /etc/systemd/system/nfs-kernel-server.service
+  stat: path=/etc/systemd/system/nfs-kernel-server.service
+  register: nfs_kernel_server_systemd_unit_file
+  changed_when: False
+
+- name: dump /etc/systemd/system/nfs-kernel-server.service
+  command: 'cat /etc/systemd/system/nfs-kernel-server.service'
+  when: nfs_kernel_server_systemd_unit_file.stat.exists == True
+  changed_when: False
+
+- name: Ensure nfs-kernel-server is running and enabled on boot.
+  service: "name={{ boss__nfs__nfs_daemon }} state=started enabled=yes"
+
+# --------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+
+
+
 # In ansible playbooks, handlers (such as to restart a service) normally happen at the end of a run. If you need ansible to run a handler between two tasks, there is "flush_handlers".
 - name: flush handlers
   meta: flush_handlers
@@ -119,3 +211,7 @@
 #     # fstab_entry: "_netdev,auto  0  0"
 #     opts: "none    bind  0  0"
 #   with_items: "{{ boss__nfs__nfs_exports }}"
+
+
+
+

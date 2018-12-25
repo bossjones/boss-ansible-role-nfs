@@ -3,7 +3,7 @@
 
 
 - name: Run exportfs to export or unexport all directories
-  shell: exportfs -a
+  shell: exportfs -ra
   ignore_errors: yes
 
 

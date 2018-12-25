@@ -28,3 +28,7 @@ boss__nfs__nfs_exports:
 
 
 # rw,sync,no_root_squash,no_subtree_check,fsid=1337
+
+
+# number of new filedescriptor limit
+boss__nfs__sysctl_fileno: 1048576
