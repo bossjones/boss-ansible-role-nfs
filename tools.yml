@@ -722,7 +722,7 @@
   - name: git clone https://github.com/bossjones/tmux-config.git
     shell: |
       apt-get install -y tmux
-      git clone https://github.com/bossjones/tmux-config.git || (cd ~/tmux-config ; git pull)
+      git clone https://github.com/bossjones/tmux-config.git ~/tmux-config || (cd ~/tmux-config ; git pull)
       ./tmux-config/install.sh
     become: '{{ item }}'
     args:
