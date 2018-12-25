@@ -2,7 +2,7 @@
 MAKEFLAGS += --warn-undefined-variables
 # .SHELLFLAGS := -eu -o pipefail
 
-DNSMASQ_DOMAIN         := bosslab.com
+DNSMASQ_DOMAIN         := hyenalab.home
 # URL_PATH_MONGO_EXPRESS := 8081
 # URL_PATH_FLASK_APP     := 8888
 # URL_PATH_UWSGI_STATS   := 9191
@@ -10,6 +10,8 @@ DNSMASQ_DOMAIN         := bosslab.com
 # URL_PATH_CONSUL        := 8500
 # URL_PATH_TRAEFIK       := 80
 # URL_PATH_TRAEFIK_API   := 8080
+URL_PATH_NETDATA_REGISTRY  := "http://nfs-master1.$(DNSMASQ_DOMAIN)"
+URL_PATH_NETDATA_NODE  := "http://nfs-worker1.$(DNSMASQ_DOMAIN)"
 URL_PATH_WHOAMI            := "http://whoami.$(DNSMASQ_DOMAIN)"
 URL_PATH_ECHOSERVER        := "http://echoserver.$(DNSMASQ_DOMAIN)"
 URL_PATH_ELASTICSEARCH     := "http://elasticsearch.$(DNSMASQ_DOMAIN)"
@@ -272,3 +274,13 @@ rebuild: destroy flush-cache bridge-up sleep ping-bridge run-bridge-ansible run-
 
 pip-install-pygments:
 	pip install Pygments
+
+
+
+open-netdata-registry:
+	./scripts/open-browser.py $(URL_PATH_NETDATA_REGISTRY)
+
+open-netdata-node:
+	./scripts/open-browser.py $(URL_PATH_NETDATA_NODE)
+
+open: open-netdata-registry open-netdata-node
