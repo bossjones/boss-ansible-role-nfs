@@ -50,6 +50,8 @@ Vagrant.configure(2) do |config|
         # make sure that the name makes sense when seen in the vbox GUI
         v.name = settings[:hostname]
 
+        v.gui = true
+
         # Be nice to our users.
         # v.customize ['modifyvm', :id, '--cpuexecutioncap', '50']
         v.customize ['modifyvm', :id, '--memory', settings[:ram], '--cpus', settings[:cpu]]

@@ -14,6 +14,8 @@
     - nfs-kernel-server
     - libnfsidmap2
 
+# SOURCE: https://help.ubuntu.com/community/SettingUpNFSHowTo
+# NOTE: It's important that /export and /export/users have 777 permissions as we will be accessing the NFS share from the client without LDAP/NIS authentication. This will not apply if using authentication (see below). Now mount the real users directory with:
 - name: create nfs share directories
   file:
     path: "{{ item.path }}"

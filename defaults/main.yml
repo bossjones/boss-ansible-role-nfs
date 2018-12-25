@@ -20,9 +20,11 @@ boss__nfs__nfs_exports:
     # export: "*(rw,async,all_squash,no_subtree_check,insecure)"
     mount_dir: "/mnt/nfsfileshare"
     state: mounted
-    fstype: nfs4
+    fstype: nfs
     # opts: _netdev,auto  0  0
-    opts: "auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
+    # SOURCE: https://linux.die.net/man/8/mount ( for mounting options )
+    opts: "_netdev,auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
+    # defaults = rw, suid, dev, exec, auto, nouser, async, and relatime.
     backup: yes
     # mount -t nfs4 -o proto=tcp,port=2049 nfs-server:/ /mnt
 

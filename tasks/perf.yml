@@ -1,3 +1,6 @@
+# TODO: https://security.stackexchange.com/questions/43205/nf-conntrack-table-full-dropping-packet/43220#43220
+# TODO: https://github.com/Oefenweb/ansible-conntrack/blob/master/tests/vagrant.yml
+
 # SOURCE: https://github.com/esl/amoc/blob/master/ansible/roles/prepare/tasks/main.yml
 
 - name: increase filedescriptor limit in sysctl

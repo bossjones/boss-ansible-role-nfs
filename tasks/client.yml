@@ -100,3 +100,44 @@
 # $ sudo systemctl start rpcbind
 # $ sudo systemctl start nfs-kernel-server
 # $ sudo systemctl start nfs-common
+
+- name: Generate /etc/idmapd.conf file
+  template:
+    src: "etc/idmapd.conf.j2"
+    dest: "/etc/idmapd.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify:
+  - run exportfs to export or unexport all directories
+  - Restart nfs-kernel-server
+  register: boss__nfs__etc_idmapd
+
+
+# NOTE: (This is now fixed) https://bugs.launchpad.net/ubuntu/+source/nfs-utils/+bug/1590799
+# systemctl add-wants multi-user rpcbind.service
+# https://github.com/nodesource/distributions/blob/master/README.md
+# NOTE: (This is now fixed) https://www.systutorials.com/241604/how-to-make-the-rpcbind-service-auto-start-in-systemd-on-linux/
+- name: systemctl add-wants multi-user rpcbind.service
+  shell: |
+    systemctl add-wants multi-user rpcbind.service
+  become: '{{ item }}'
+  args:
+    executable: /bin/bash
+    creates: /lib/systemd/system/rpcbind.service
+  ignore_errors: yes
+  # failed_when: false
+  # changed_when: false
+  with_items:
+    - true  # Run as root
+  tags:
+  - rpcbind
+  - systemctl
+
+- name: "ENABLE: {{ item }}"
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  with_items:
+    - rpcbind
