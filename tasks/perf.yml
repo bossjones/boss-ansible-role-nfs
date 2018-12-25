@@ -25,6 +25,7 @@
 - name: increase write buffer sizes to 256KiB
   sysctl: name="net.core.wmem_max" value="262144" sysctl_set=yes state=present reload=yes
 
+# FIXME: I don't think this worked
 # https://linuxconfig.org/how-to-enable-jumbo-frames-in-linux
 - name: How To Enable Jumbo Frames In Linux - mtu 9000
   shell: |
