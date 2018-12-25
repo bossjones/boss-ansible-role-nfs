@@ -6,6 +6,53 @@
 - name: increase filedescriptor limit in sysctl
   sysctl: name="fs.file-max" value="{{boss__nfs__sysctl_fileno}}" sysctl_set=yes state=present reload=yes
 
+# maximize number of file watches
+
+# Increasing the size of the input and output queues allows more data to be transferred via NFS. Effectively, you are increasing the size of buffers that can store data. The more data that can be stored in memory, the faster NFS can process it (i.e., more data is queued up). The NFS server NFS daemons share the same socket input and output queues, so if the queues are larger, all of the NFS daemons have more buffer and can send and receive data much faster.
+
+# For the input queue, the two values you want to modify are /proc/sys/net/core/rmem_default (the default size of the read queue in bytes) and /proc/sys/net/core/rmem_max (the maximum size of the read queue in bytes). These values are fairly easy to modify:
+
+# SOURCE: http://www.admin-magazine.com/HPC/Articles/Useful-NFS-Options-for-Tuning-and-Management
+- name: increase read buffer sizes to 256KiB
+  sysctl: name="net.core.rmem_default" value="262144" sysctl_set=yes state=present reload=yes
+
+- name: increase read buffer sizes to 256KiB
+  sysctl: name="net.core.rmem_max" value="262144" sysctl_set=yes state=present reload=yes
+
+- name: increase write buffer sizes to 256KiB
+  sysctl: name="net.core.wmem_default" value="262144" sysctl_set=yes state=present reload=yes
+
+- name: increase write buffer sizes to 256KiB
+  sysctl: name="net.core.wmem_max" value="262144" sysctl_set=yes state=present reload=yes
+
+# https://linuxconfig.org/how-to-enable-jumbo-frames-in-linux
+- name: How To Enable Jumbo Frames In Linux - mtu 9000
+  shell: |
+    for i in $(ip a l  | grep 'mtu 1500' | awk -F':' '{print $2}'); do
+      ip link set $i mtu 9000
+    done
+  become: '{{ item }}'
+  args:
+    executable: /bin/bash
+  with_items:
+    - true  # Run as vagrant
+  tags:
+  - mtu
+
+# function mtu_update {
+#   INTERFACE="$(echo ${1} | awk -F'@' '{print $1}')"
+#   MTU="$2"
+#   echo -e "interface: ${INTERFACE} set: ${MTU}"
+#   ip link set dev ${INTERFACE} mtu ${MTU}
+# }
+
+# net.core.rmem_default
+# echo 262144 > /proc/sys/net/core/rmem_default
+# echo 262144 > /proc/sys/net/core/rmem_max
+
+# echo 262144 > /proc/sys/net/core/wmem_default
+# echo 262144 > /proc/sys/net/core/wmem_max
+
 - name: increase ipv4 local port range in sysctl
   sysctl: name="net.ipv4.ip_local_port_range" value="1024 65535" sysctl_set=yes state=present reload=yes
 
@@ -66,7 +113,6 @@
 # In ansible playbooks, handlers (such as to restart a service) normally happen at the end of a run. If you need ansible to run a handler between two tasks, there is "flush_handlers".
 - name: flush handlers
   meta: flush_handlers
-
 
 # We can also try this
 
