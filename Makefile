@@ -169,7 +169,7 @@ run-ansible-etckeeper:
 	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v -f 10 --tags etckeeper
 
 run-ansible-rvm:
-	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v -f 10 --tags 'ruby' --check
+	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v -f 10 --tags 'ruby'
 
 run-ansible-ruby: run-ansible-rvm
 
