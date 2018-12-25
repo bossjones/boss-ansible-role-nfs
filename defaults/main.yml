@@ -8,16 +8,22 @@ boss__nfs__nfs_interface: "eth0"
 boss__nfs__nfs_server_group: masters
 boss__nfs__nfs_client_group: nodes
 
+boss__nfs__nfs_user: nobody
+boss__nfs__nfs_group: nogroup
+
 boss__nfs__nfs_exports:
-  - path: "/nfsfileshare"
-    remote: "/nfsfileshare"
+  - path: "/mnt/publicdata"
+    remote: "/mnt/publicdata"
     # export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"
-    export: "*(fsid=0,rw,async,all_squash,no_subtree_check,insecure)"
+    # export: "*(fsid=0,rw,async,all_squash,no_subtree_check,insecure)"
+    export: "*(rw,sync,no_subtree_check)"
     # export: "*(rw,async,all_squash,no_subtree_check,insecure)"
     mount_dir: "/mnt/nfsfileshare"
     state: mounted
     fstype: nfs4
-    opts: _netdev,auto  0  0
+    # opts: _netdev,auto  0  0
+    opts: "auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
+    backup: yes
     # mount -t nfs4 -o proto=tcp,port=2049 nfs-server:/ /mnt
 
 

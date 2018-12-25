@@ -35,16 +35,17 @@
     state: started
     enabled: yes
   with_items:
-    - rpcbind
-    - nfs-server
+    # - rpcbind
+    # - nfs-server
+    - nfs-kernel-server
 
-- name: start services
-  service:
-    name: "{{ item }}"
-    state: started
-  with_items:
-    - rpc-statd
-    - nfs-idmapd
+# - name: start services
+#   service:
+#     name: "{{ item }}"
+#     state: started
+#   with_items:
+#     - rpc-statd
+#     - nfs-idmapd
 
 # - name: add NFS share to /etc/export
 #   lineinfile:
@@ -63,20 +64,26 @@
     owner: root
     group: root
     mode: 0644
-  # notify: reload nfs
+  notify:
+  - run exportfs to export or unexport all directories
+  - Restart nfs-kernel-server
   register: nfs_exports_result
 
-- name: Restart NFS server service
-  service:
-    name: nfs-server
-    state: restarted
-  when: nfs_exports_result|changed
+# In ansible playbooks, handlers (such as to restart a service) normally happen at the end of a run. If you need ansible to run a handler between two tasks, there is "flush_handlers".
+- name: flush handlers
+  meta: flush_handlers
 
-- name: Restart rpc-statd server service
-  service:
-    name: rpc-statd
-    state: restarted
-  when: nfs_exports_result|changed
+# - name: Restart NFS server service
+#   service:
+#     name: nfs-server
+#     state: restarted
+#   when: nfs_exports_result|changed
+
+# - name: Restart rpc-statd server service
+#   service:
+#     name: rpc-statd
+#     state: restarted
+#   when: nfs_exports_result|changed
 
 # - name: enable firewalld for NFS Server
 #   firewalld:
@@ -92,23 +99,23 @@
 ######################################################################################
 # nfs - client
 ######################################################################################
-- debug: msg="NFS Client"
+# - debug: msg="NFS Client"
 
-- name: enable services
-  service:
-    name: "{{ item }}"
-    state: started
-    enabled: yes
-  with_items:
-    - rpcbind
+# - name: enable services
+#   service:
+#     name: "{{ item }}"
+#     state: started
+#     enabled: yes
+#   with_items:
+#     - rpcbind
 
-- name: mount the NFS directories
-  mount:
-    name: "{{ item.path }}"
-    src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
-    state: "{{ item.state }}"
-    # fstype: nfs
-    fstype: "{{ item.fstype }}"
-    # fstab_entry: "_netdev,auto  0  0"
-    opts: "none    bind  0  0"
-  with_items: "{{ boss__nfs__nfs_exports }}"
+# - name: mount the NFS directories
+#   mount:
+#     name: "{{ item.path }}"
+#     src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
+#     state: "{{ item.state }}"
+#     # fstype: nfs
+#     fstype: "{{ item.fstype }}"
+#     # fstab_entry: "_netdev,auto  0  0"
+#     opts: "none    bind  0  0"
+#   with_items: "{{ boss__nfs__nfs_exports }}"

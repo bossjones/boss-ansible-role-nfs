@@ -1,2 +1,13 @@
 ---
-# handlers file for boss-ansible-role-debug
+# handlers file for boss-ansible-role-nfs
+
+
+- name: Run exportfs to export or unexport all directories
+  shell: exportfs -a
+  ignore_errors: yes
+
+
+- name: Restart nfs-kernel-server
+  service:
+    name: nfs-kernel-server
+    state: restarted

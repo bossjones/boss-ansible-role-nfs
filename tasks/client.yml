@@ -17,36 +17,40 @@
   file:
     path: "{{ item.mount_dir }}"
     state: directory
-    mode: 0777
+    # mode: 0777
   with_items: "{{ boss__nfs__nfs_exports }}"
 
 
-- name: create nfs share directories
-  file:
-    path: "{{ item.path }}"
-    state: directory
-    mode: 0777
-  with_items: "{{ boss__nfs__nfs_exports }}"
+# - name: create nfs share directories
+#   file:
+#     path: "{{ item.path }}"
+#     state: directory
+#     mode: 0777
+#   with_items: "{{ boss__nfs__nfs_exports }}"
 
-- name: enable services
-  service:
-    name: "{{ item }}"
-    state: started
-    enabled: yes
-  with_items:
-    - rpcbind
+# - name: enable services
+#   service:
+#     name: "{{ item }}"
+#     state: started
+#     enabled: yes
+#   with_items:
+#     - rpcbind
 
 - name: mount the NFS directories
   mount:
-    name: "{{ item.path }}"
+    path: "{{ item.path }}"
     src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
     state: {{item.state}}
     fstype: "{{item.fstype}}"
     opts: "{{item.opts}}"
+    backup: "{{item.backup}}"
   with_items: "{{ boss__nfs__nfs_exports }}"
 
 # ----
 
+# In ansible playbooks, handlers (such as to restart a service) normally happen at the end of a run. If you need ansible to run a handler between two tasks, there is "flush_handlers".
+- name: flush handlers
+  meta: flush_handlers
 
 # - name: Verify mount directory exists
 #   file:
