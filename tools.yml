@@ -162,6 +162,107 @@
         - tcpflow
         # SOURCE: https://www.tecmint.com/linux-network-bandwidth-monitoring-tools/
         - iftop
+        - procps
+        - dstat
+        - ifstat
+        - tcpstat
+        - atop
+        - iotop
+        - itop
+        - latencytop
+        - ntop
+        - tiptop
+        - sntop
+        - virt-top
+        - jnettop
+        - kerneltop
+        - logtop
+
+# TODO: For consideration
+# root@nfs-master1:~# apt-cache search top | grep "top - .*"
+# gir1.2-freedesktop - Introspection data for some FreeDesktop components
+# libunity-scopes-json-def-desktop - binding to get places into the launcher - desktop def file
+# powertop - diagnose issues with power consumption and management
+# sound-theme-freedesktop - freedesktop.org sound theme
+# ubuntu-desktop - The Ubuntu desktop system
+# unity-control-center-faces - utilities to configure the GNOME desktop - faces images
+# apachetop - Realtime Apache monitoring tool
+# atop - Monitor for system resources and process activity
+# autopilot-desktop - Autopilot support for the ubuntu Desktop platform
+# cinnamon-control-center-dbg - utilities to configure the Cinnamon desktop - debug symbols
+# ctop - Command line / text based Linux Containers monitoring tool
+# djvulibre-desktop - Desktop support for the DjVu image format
+# dnstop - console tool to analyze DNS traffic
+# edubuntu-desktop - educational desktop for Ubuntu
+# gambas3-gb-desktop - Gambas Portland project compatibility component
+# gir1.2-mate-desktop - GObject introspection data for the mate-desktop library
+# gkrelltop - Top three intensive processes plugin for gkrellm
+# gnome-hwp-support-dbg - HWP document integration for GNOME desktop - debugging symbols
+# gosa-desktop - Desktop integration for GOsa²
+# grdesktop - GNOME frontend for the rdesktop client
+# gtk-recordmydesktop - Graphical frontend for recordMyDesktop screencast tool
+# hatop - interactive ncurses client for haproxy
+# htop - interactive processes viewer
+# iftop - displays bandwidth usage information on an network interface
+# iotop - simple top-like I/O monitor
+# itop - simple top-like interrupt load monitor
+# j4-dmenu-desktop - faster replacement for i3-dmenu-desktop
+# jnettop - View hosts/ports taking up the most network traffic
+# kerneltop - shows Linux kernel function usage in a style like top
+# kubuntu-desktop - Kubuntu Plasma Desktop/Netbook system
+# kubuntu-settings-desktop - Settings and artwork for the Kubuntu (Desktop)
+# latencytop - A tool for developers to visualize system latencies
+# live-image-gnome-desktop - live-build configuration for the GNOME desktop live images
+# live-image-kde-desktop - live-build configuration for the KDE live images
+# live-image-lxde-desktop - live-build configuration for the LXDE desktop live images
+# live-image-xfce-desktop - live-build configuration for the Xfce desktop live images
+# logtop - real time log line rate analyzer
+# lttngtop - LTTng 2.0 Top-like trace reader and analyzer
+# lua-bitop - fast bit manipulation library for the Lua language
+# lubuntu-desktop - Lubuntu Desktop environment
+# matchbox-desktop - desktop application launcher for resource-limited systems
+# mate-desktop - Library with common API for various MATE modules
+# mir-graphics-drivers-desktop - Display server for Ubuntu - desktop driver metapackage
+# mytop - top like query monitor for MySQL
+# neurodebian-desktop - neuroscience-oriented distribution - desktop integration
+# ntop - display network usage in web browser
+# numatop - NUMA runtime observation tool
+# open-vm-tools-desktop - Open VMware Tools for virtual machines hosted on VMware (GUI)
+# pgtop - PostgreSQL performance monitoring tool akin to top
+# plasma-desktop - Tools and widgets for the desktop
+# plasma-look-and-feel-org-kde-breezedark-desktop - Dark Breeze look-and-feel for Plasma
+# plasma-mediacenter-dbg - multimedia center for KDE desktop - debugging symbols
+# ptop - transitional dummy package
+# qtmir-desktop - Qt platform abstraction (QPA) plugin for a Mir server (desktop)
+# qtop - windowed version of the console top command
+# qtubuntu-desktop - Qt plugins for Ubuntu Platform API (desktop)
+# radeontop - Utility to show Radeon GPU utilization
+# razorqt-desktop - Desktop component for Razor-qt desktop environment
+# rdesktop - RDP client for Windows NT/2000 Terminal Server and Windows Servers
+# recordmydesktop - Captures audio-video data of a Linux desktop session
+# ros-desktop - Robot OS desktop metapackage
+# ruby-treetop - Ruby-based text parsing and interpretation DSL
+# sntop - A curses-based utility that polls hosts to determine connectivity
+# starpu-top - Task scheduler for heterogeneous multicore machines - top
+# tiptop - performance monitoring tool for Linux
+# treetop - Ruby-based text parsing and interpretation (command-line utility)
+# ubuntu-application-api3-desktop - Implementation of the Platform API for Ubuntu Desktop
+# ubuntu-gnome-desktop - The Ubuntu GNOME metapackage
+# ubuntu-mate-cloudtop - Ubuntu MATE - reduced desktop for terminal server deployment
+# ubuntu-mate-desktop - Ubuntu MATE - full desktop
+# ubuntu-pocket-desktop - Ubuntu touch pocket desktop system
+# ubuntukylin-desktop - The Ubuntu Kylin desktop system
+# ubuntustudio-desktop - Ubuntu Studio Desktop Package
+# utop - improved OCaml toplevel
+# virt-top - show stats of virtualized domains
+# wmtop - dockapp that displays 3 top memory or CPU using processes
+# xrestop - X11 server resource usage monitor
+# xubuntu-desktop - Xubuntu desktop system
+# yubioath-desktop - Graphical interface for displaying OATH codes with a Yubikey
+# mythbuntu-desktop - The Mythbuntu standalone system
+# root@nfs-master1:~#
+
+
 
   # SOURCE: https://gist.github.com/kometchtech/c5681b2a70b30c99bf7e834ffb3abba5
   - name: "Install dnsperf prereqs"
@@ -467,6 +568,63 @@
         - bcc-tools
         - libbcc-examples
         - "linux-headers-{{ uname_result.stdout }}"
+
+
+  - name: git clone https://github.com/bossjones/tmux-config.git
+    shell: |
+      apt-get install -y tmux
+      git clone https://github.com/bossjones/tmux-config.git || (cd ~/tmux-config ; git pull)
+      ./tmux-config/install.sh
+    become: '{{ item }}'
+    args:
+      executable: /bin/bash
+      creates: '$HOME/tmux-config'
+    with_items:
+      - true  # Run as vagrant
+      - false  # Run as vagrant
+    tags:
+    - tmux
+    - tmux-config
+
+# vagrant@nfs-worker1:~$ history
+#     1  neofetch
+#     2  exit
+#     3  cd $HOME
+#     4  git clone https://github.com/bossjones/tmux-config.git || (cd ~/tmux-config ; git pull)
+#     5  cd $HOME
+#     6  ./tmux-config/install.sh
+#     7  sudo apt-get install byoub
+#     8  sudo apt-get install byou
+#     9  gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+#    10  sudo apt-get install ctags -y
+#    11  sudo apt-get install curl -y
+#    12  \curl -sSL https://get.rvm.io | bash -s stable --gems="bundler tmuxinator" --with-default-gems="pry bundler ruby-debug-ide debase rcodetools rubocop fastri htmlbeautifier hirb gem-ctags excon pry-doc tmuxinator solargraph"
+#    13  source /home/vagrant/.rvm/scripts/rvm
+#    14  rvm install -l
+#    15  cho progress-bar >> ~/.curlrc
+#    16  echo progress-bar >> ~/.curlrc
+#    17  rvm install 2.4.2
+#    18  rvm use 2.4.2 --default
+#    19  gem install tmuxinator
+#    20  git clone https://github.com/bossjones/linux-dotfiles ~/.dotfiles
+#    21  cp -a ~/.dotfiles/runcom/.tmuxinator ~/.tmxinator
+#    22  v ~/.tmxinator ~/.tmuxinator
+#    23  mv ~/.tmxinator ~/.tmuxinator
+#    24  tmuxinator start work
+#    25  sudo apt-get install neofetch
+#    26  sudo apt-cache search neofetch
+#    27  sudo add-apt-repository ppa:dawidd0811/neofetch
+#    28  sudo apt update && sudo apt install neofetch
+#    29  tmuxinator start work
+#    30  neofetch
+#    31  sudo apt-get install xclip -y
+#    32  sudo apt-get instll ccze -y
+#    33  sudo apt-get install ccze -y
+#    34  sudo su -
+#    35  exit
+#    36  rvm ls
+#    37  history
+
   roles:
    - role: ansible-goss-install
      # == Detail about Goss binary files in GitHub ==
@@ -484,3 +642,25 @@
      goss_create_dst_dir: True
      tags:
       - goss
+
+- hosts: nodes
+  name: (nodes) - Install and configure rvm
+  gather_facts: True
+  become: no
+  become_method: sudo
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  tags:
+    - ruby
+    - nodes
+    - servers
+    - rvm
+    - install
+    - node_install
+  roles:
+    - role: rvm.ruby
+      become: False
+      rvm1_rubies: ['ruby-2.4.2']
+      rvm1_user: "{{ ansible_user_id }}"
+      rvm1_install_flags: '--auto-dotfiles --user-install -s stable --gems="bundler tmuxinator"'
+      rvm1_install_path: "/home/{{ ansible_user_id }}/.rvm"

@@ -108,3 +108,23 @@
 # #       path: /mnt/ontap
 # #       src: "172.32.0.184:/{{ volname }}"
 # #       fstype: nfs
+
+- hosts: nodes
+  name: (nodes) - Install and configure tmuxinator
+  gather_facts: True
+  become: no
+  become_method: sudo
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  tags:
+    - ruby
+    - nodes
+    - servers
+    - rvm
+    - install
+    - node_install
+  roles:
+    - role: ../
+      task: monitor
+      boss__nfs__master_node_ip: '192.168.50.101'
+      boss__nfs__nfs_interface: 'enp0s8'
