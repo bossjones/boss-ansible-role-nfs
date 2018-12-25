@@ -56,8 +56,22 @@ sysctl -w net.ipv4.netfilter.ip_conntrack_max=<more than currently set>
 http://www.brendangregg.com/ebpf#bcc
 
 
+# Evolution of NFS Versions
+
+NFS version 2 only allowed access to the first 2 GB of a file. The client made the decision about whether the user could access the file or not. This version supported UDP only, and it limited write operations to 8 kbytes. Ugh. It was a nice start, though.
+
+NFS version 3 supported much larger files. The client could ask the server to make the access decision — although it didn't have to and so we still had to fully trust all client hosts. NFSv3 over UDP could use up to 56 kbyte transactions. There was now support for NFS over TCP, although client implementations varied quite a bit as to details with associated compatibility issues.
+
+NFS version 4 added statefulness, so an NFSv4 client could directly inform the server about its locking, reading, writing the file, and so on. All the NFS application protocols — mount, stat, ACL checking, and the NFS file service itself, run over a single network protocol always running on a predictable TCP port 2049. There is no longer any need for an RPC port mapper to start first, or for separate mount and file locking daemons to run independently. Access control is now done by user name, not possibly inconsistent UID and GID as before, and security could be further enhanced with the use of Kerberos.
+
+NFS version 4.1 adds Parallel NFS (or pNFS), which can stripe data across multiple NFS servers. You can do block-level access and use NFS v4.1 much like Fibre Channel and iSCSI, and object access is meant to be analogous to AWS S3. NFS v4.1 adds some performance enhancements Perhaps more importantly to many current users, NFS v4.1 on Linux better inter-operates with non-Linux NFS servers and clients. Specifically, mounting NFS from Windows servers using Kerberos V5. For all the details see RFC 5661.
+
 # Perf NFS tools
 
+SOURCE: https://cromwell-intl.com/open-source/performance-tuning/nfs.html
+
+NFS Performance Goals
+Rotating SATA and SAS disks can provide I/O of about 1 Gbps. Solid-state disks can fill the 6 Gbps bandwidth of a SATA 3 controller. NFS should be about this fast, filling a 1 Gbps LAN. NFS SAN appliances can fill a 10 Gbps LAN. Random I/O performance should be good, about 100 transactions per second per spindle.
 
 # OPTIONS:
 * -d     the directory to use for the tests
@@ -105,4 +119,11 @@ root@nfs-worker1:~#
 
 ```
 # iozone -aRcU /mnt/nfs/ -f /mnt/nfs/testfile > logfile
+```
+
+# compare mount configs to blog post
+
+```
+/mnt/publicdata from 192.168.50.101:/mnt/publicdata
+ Flags:	rw,noatime,vers=4.0,rsize=262144,wsize=262144,namlen=255,acregmin=1800,acregmax=1800,acdirmin=1800,acdirmax=1800,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=192.168.50.102,local_lock=none,addr=192.168.50.101
 ```

@@ -182,6 +182,7 @@
         - perf-tools-unstable
         - bonnie++
         - gnuplot
+        - iozone3
 
 # TODO: For consideration
 # root@nfs-master1:~# apt-cache search top | grep "top - .*"
@@ -790,6 +791,98 @@
       group: "root"
       mode: 0755
 
+
+  - name: "create /usr/local/bin/nfsstat-top.sh"
+    copy:
+      content: |
+        #!/usr/bin/env bash
+        #
+        # OPTIONS: https://linux.die.net/man/8/nfsstat
+        # nfsstat-top script
+        # Version: MASTER branch
+        # Author:  Bossjones
+        #
+
+        watch "nfsstat -o all -234"
+
+
+
+      dest: "/usr/local/bin/nfsstat-top.sh"
+      owner: "root"
+      group: "root"
+      mode: 0755
+
+
+  - name: "create /usr/local/bin/nfsstat-report.sh"
+    copy:
+      content: |
+        #!/usr/bin/env bash
+        #
+        # OPTIONS: https://linux.die.net/man/8/nfsstat
+        # nfsstat-report script
+        # Version: MASTER branch
+        # Author:  Bossjones
+        #
+
+        echo "nfsstat-report"
+        echo ""
+        echo "[Show information about mounted NFS filesystems]"
+        echo "-----------------------------------------------------"
+        nfsstat -m | ccze -A
+        echo ""
+        echo ""
+        echo "[Show all information about all versions of NFS]"
+        echo "-----------------------------------------------------"
+        nfsstat -o all -234 | ccze -A
+
+
+
+
+      dest: "/usr/local/bin/nfsstat-report.sh"
+      owner: "root"
+      group: "root"
+      mode: 0755
+
+
+  - name: "create /usr/local/bin/iozone-benchmark.sh"
+    copy:
+      content: |
+        #!/usr/bin/env bash
+        #
+        # OPTIONS: https://linux.die.net/man/8/nfsstat
+        # iozone-benchmark script
+        # Version: MASTER branch
+        # Author:  Bossjones
+        #
+
+        # SOURCE: http://nfs.sourceforge.net/nfs-howto/ar01s05.html
+        # the benchmark should take 2-3 hours at most, but of course you will need to run it for each value of rsize and wsize that is of interest. The web site gives full documentation of the parameters, but the specific options used above are:
+
+        # -a: Full automatic mode, which tests file sizes of 64K to 512M, using record sizes of 4K to 16M
+        # -R: Generate report in excel spreadsheet form (The "surface plot" option for graphs is best)
+        # -c: Include the file close time in the tests, which will pick up the NFS version 3 commit time
+        # -U: Use the given mount point to unmount and remount between tests; it clears out caches
+        # -f: When using unmount, you have to locate the test file in the mounted file system
+
+
+        echo "iozone-benchmark"
+        echo ""
+        echo "[ONLY RUN THIS ON CLIENT MACHINES NOT THE NFS SERVER]"
+        echo "-----------------------------------------------------"
+        iozone -a -R -c -U /mnt/publicdata -f /mnt/publicdata/testfile > /var/log/iozone-benchmark-logfile
+        echo ""
+        echo ""
+
+      dest: "/usr/local/bin/iozone-benchmark.sh"
+      owner: "root"
+      group: "root"
+      mode: 0755
+
+
+# Mount config options
+# root@nfs-worker1:~# nfsstat -m
+# /mnt/publicdata from 192.168.50.101:/mnt/publicdata
+#  Flags:	rw,noatime,vers=4.0,rsize=262144,wsize=262144,namlen=255,acregmin=1800,acregmax=1800,acdirmin=1800,acdirmax=1800,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=192.168.50.102,local_lock=none,addr=192.168.50.101
 
   # # SOURCE: https://github.com/bossjones/boss-ansible-homelab/blob/be5127249f978d841e8987886ffd4c5076be816f/vagrant_playbook.yml
   # - name: debian | Installing Pre-Reqs
