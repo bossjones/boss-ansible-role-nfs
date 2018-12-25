@@ -614,6 +614,65 @@
     tags:
       - configuration
 
+
+  # SOURCE: https://github.com/bossjones/boss-ansible-homelab/blob/be5127249f978d841e8987886ffd4c5076be816f/vagrant_playbook.yml
+  - name: debian | Installing Pre-Reqs
+    apt:
+      name: "{{ item }}"
+      state: present
+    become: True
+    with_items:
+      - peco
+      - atop
+      - bash
+      - bash-completion
+      - binutils-dev
+      - bison
+      - bridge-utils
+      - build-essential
+      - ca-certificates
+      - ccze
+      - dstat
+      - elfutils
+      - file
+      - flex
+      - git
+      - htop
+      - iftop
+      - iotop
+      - iperf
+      - iperf3
+      - iproute
+      - lsof
+      - ltrace
+      - make
+      - mercurial
+      - mtr
+      - net-tools
+      - ngrep
+      - nmap
+      - ntpdate
+      - perf-tools-unstable
+      - perl
+      - procps
+      - psmisc
+      - pv
+      - python-dev
+      - ruby2.3
+      - socat
+      - strace
+      - sysstat
+      - tar
+      - tcpdump
+      - tree
+      - vim
+      - wget
+      - mlocate
+      - ncdu
+      - fonts-symbola
+      - ttf-ancient-fonts-symbola
+      - ttf-ancient-fonts
+      - software-properties-common
 # vagrant@nfs-worker1:~$ history
 #     1  neofetch
 #     2  exit

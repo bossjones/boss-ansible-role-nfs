@@ -9,3 +9,12 @@
 - src: geerlingguy.pip
 - src: https://github.com/bossjones/ansible-goss-install
 - src: rvm.ruby
+
+
+
+- src: https://www.github.com/mrlesmithjr/ansible-netdata.git
+- src: https://www.github.com/mrlesmithjr/ansible-nginx.git
+- src: https://www.github.com/mrlesmithjr/ansible-ntp.git
+- src: https://www.github.com/mrlesmithjr/ansible-timezone.git
+- src: https://www.github.com/mrlesmithjr/ansible-motd
+- src: https://www.github.com/mrlesmithjr/ansible-logrotate

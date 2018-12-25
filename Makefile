@@ -173,6 +173,10 @@ run-ansible-rvm:
 
 run-ansible-ruby: run-ansible-rvm
 
+# For performance tuning/measuring
+run-ansible-netdata:
+	@ansible-playbook -i inventory.ini netdata.yml -v
+
 run-ansible-tools:
 	@ansible-playbook -i inventory.ini tools.yml -v -f 10
 
