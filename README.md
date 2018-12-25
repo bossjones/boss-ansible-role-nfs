@@ -49,3 +49,8 @@ sysctl -w net.ipv4.netfilter.ip_conntrack_tcp_timeout_established=54000
 sysctl -w net.netfilter.nf_conntrack_generic_timeout=120
 sysctl -w net.ipv4.netfilter.ip_conntrack_max=<more than currently set>
 ```
+
+
+# Perf
+
+http://www.brendangregg.com/ebpf#bcc

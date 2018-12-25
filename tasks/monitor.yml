@@ -7,12 +7,12 @@
   shell: |
     mkdir -p ~/.tmuxinator
   become: '{{ item }}'
+  become_user: "{{bossjones__user}}"
   args:
     executable: /bin/bash
     creates: '$HOME/.tmuxinator'
   ignore_errors: yes
   with_items:
-    - true  # Run as root
     - false  # Run as vagrant
   tags:
   - tmux
@@ -24,10 +24,10 @@
     dest: "/home/vagrant/.tmuxinator/perf.yml"
     mode: "0644"
   become: '{{ item }}'
+  become_user: "{{bossjones__user}}"
   ignore_errors: yes
   with_items:
     - false  # Run as vagrant
   tags:
   - tmux
   - tmuxinator
-  when: ansible_ssh_user=="vagrant"

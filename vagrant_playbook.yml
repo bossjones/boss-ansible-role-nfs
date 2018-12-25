@@ -114,6 +114,9 @@
   gather_facts: True
   become: no
   become_method: sudo
+  vars:
+    bossjones__user: vagrant
+    bossjones__group: vagrant
   environment:
     DEBIAN_FRONTEND: noninteractive
   tags:

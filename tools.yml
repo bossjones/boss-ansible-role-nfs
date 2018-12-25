@@ -179,6 +179,7 @@
         - logtop
         - nicstat
         - xclip
+        - perf-tools-unstable
 
 # TODO: For consideration
 # root@nfs-master1:~# apt-cache search top | grep "top - .*"
@@ -587,6 +588,31 @@
     tags:
     - tmux
     - tmux-config
+
+  - name: Add bcc-tools to path
+    lineinfile:
+      path: '$HOME/.bashrc'
+      line: 'export PATH="/usr/share/bcc/tools:$PATH"'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+
+  - name: locale setup
+    shell: |
+      locale-gen en_US.UTF-8
+      dpkg-reconfigure locales
+      update-locale {{ item }}
+    with_items:
+      - LANGUAGE="en_US.UTF-8"
+      - LANG="en_US.UTF-8"
+      - LC_ALL="en_US.UTF-8"
+    sudo: yes
+    become: yes
+    tags:
+      - configuration
 
 # vagrant@nfs-worker1:~$ history
 #     1  neofetch
