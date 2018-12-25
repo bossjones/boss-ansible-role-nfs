@@ -183,6 +183,7 @@
         - bonnie++
         - gnuplot
         - iozone3
+        - tree
 
 # TODO: For consideration
 # root@nfs-master1:~# apt-cache search top | grep "top - .*"
