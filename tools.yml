@@ -877,7 +877,7 @@
         echo ""
         echo "[ONLY RUN THIS ON CLIENT MACHINES NOT THE NFS SERVER]"
         echo "-----------------------------------------------------"
-        iozone -a -R -c -U /mnt/publicdata -f /mnt/publicdata/testfile > /var/log/iozone-benchmark-logfile
+        time iozone -a -R -c -U /mnt/publicdata -f /mnt/publicdata/testfile > /var/log/iozone-benchmark-logfile
         echo ""
         echo ""
 

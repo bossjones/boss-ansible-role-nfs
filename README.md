@@ -127,3 +127,7 @@ root@nfs-worker1:~#
 /mnt/publicdata from 192.168.50.101:/mnt/publicdata
  Flags:	rw,noatime,vers=4.0,rsize=262144,wsize=262144,namlen=255,acregmin=1800,acregmax=1800,acdirmin=1800,acdirmax=1800,hard,proto=tcp,port=0,timeo=600,retrans=2,sec=sys,clientaddr=192.168.50.102,local_lock=none,addr=192.168.50.101
 ```
+
+
+https://cromwell-intl.com/open-source/performance-tuning/disks.html
+https://linuxconfig.org/how-to-automatically-execute-shell-script-at-startup-boot-on-systemd-linux
