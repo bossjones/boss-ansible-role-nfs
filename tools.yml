@@ -720,7 +720,14 @@
         - bcc-tools
         - libbcc-examples
         - "linux-headers-{{ uname_result.stdout }}"
-
+        # NOTE: These are required for perf to work
+        # SOURCE: http://www.brendangregg.com/perf.html#Prerequisites
+        # SOURCE: https://github.com/brendangregg/perf-tools
+        # SOURCE: http://www.brendangregg.com/HeatMaps/latency.html
+        - "linux-tools-{{ uname_result.stdout }}"
+        - "linux-cloud-tools-{{ uname_result.stdout }}"
+        - linux-tools-generic
+        - linux-cloud-tools-generic
 
   - name: git clone https://github.com/bossjones/tmux-config.git
     shell: |
