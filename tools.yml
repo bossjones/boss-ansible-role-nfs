@@ -181,6 +181,7 @@
         - xclip
         - perf-tools-unstable
         - bonnie++
+        - gnuplot
 
 # TODO: For consideration
 # root@nfs-master1:~# apt-cache search top | grep "top - .*"
@@ -758,6 +759,36 @@
   #   become: yes
   #   tags:
   #     - configuration
+
+
+  - name: "create /usr/local/bin/nfs-benchmark.sh"
+    copy:
+      content: |
+        #!/usr/bin/env bash
+        #
+        # nfs-benchmark script
+        # Version: MASTER branch
+        # Author:  Bossjones
+        #
+
+        i=1
+        until [ $i -gt 100 ]
+        do
+          echo "Running bonne++ $i of 100."
+          echo ""
+          echo "-----------------------------------------------------"
+          bonnie++ -d /mnt/publicdata/ -s 2048 -r 1024 -u 65534 -g 65534
+          echo ""
+          echo ""
+          i=$(( i+1 ))
+        done
+
+
+
+      dest: "/usr/local/bin/nfs-benchmark.sh"
+      owner: "root"
+      group: "root"
+      mode: 0755
 
 
   # # SOURCE: https://github.com/bossjones/boss-ansible-homelab/blob/be5127249f978d841e8987886ffd4c5076be816f/vagrant_playbook.yml

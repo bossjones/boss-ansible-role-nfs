@@ -311,8 +311,8 @@
   tags:
     - netdata_nodes
   vars:
-    bossjones__user: "pi"
-    bossjones__group: "pi"
+    bossjones__user: "vagrant"
+    bossjones__group: "vagrant"
     netdata_registry_enabled: False
     netdata_registry_to_announce: "http://{{ netdata_stream_master_node }}:{{ netdata_default_port }}"
     pri_domain_name: scarlett-ids.local

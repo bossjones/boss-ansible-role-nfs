@@ -74,7 +74,7 @@ bonnie++ -d /mnt/publicdata/ -s 2048 -r 1024 -u 65534 -g 65534
 ### Example output
 
 ```
-root@nfs-worker1:~# bonnie++ -d /mnt/publicdata/ -s 8192 -r 1024 -u 65534 -g 65534
+root@nfs-worker1:~# bonnie++ -d /mnt/publicdata/ -s 2048 -r 1024 -u 65534 -g 65534
 Using uid:65534, gid:65534.
 Writing a byte at a time...done
 Writing intelligently...done
