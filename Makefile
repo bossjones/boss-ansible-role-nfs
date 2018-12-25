@@ -171,6 +171,9 @@ run-ansible-etckeeper:
 run-ansible-tools:
 	@ansible-playbook -i inventory.ini tools.yml -v -f 10
 
+run-ansible-goss:
+	@ansible-playbook -i inventory.ini tools.yml -v -f 10 --tags goss
+
 run-ansible-docker:
 	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v --tags docker-provision --flush-cache
 
