@@ -171,6 +171,16 @@
         # REQUIRED: https://www.tecmint.com/hegemon-system-monitoring-tool-for-linux/
         - libsensors4-dev
 
+  - name: "Install python-deps"
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+        - python3-dev
+        - python-dev
+        - python3-pip
+        - python-pip
+
   - name: check if /usr/bin/sysdig exists
     stat:
       path: /usr/bin/sysdig
@@ -360,22 +370,77 @@
     pip:
       name: "cheat"
 
-  # https://github.com/nodesource/distributions/blob/master/README.md
-  - name: install node version v11.4.0
-    shell: |
-      curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
-      apt-get install -y nodejs
-      apt-get install -y gcc g++ make
-      npm install -g docker-loghose
-      npm install -g docker-enter
-    become: '{{ item }}'
-    args:
-      executable: /bin/bash
-      creates: '/usr/bin/npm'
-    with_items:
-      - true  # Run as root
-    tags:
-    - node
-    - npm
+  # # https://github.com/nodesource/distributions/blob/master/README.md
+  # - name: install node version v11.4.0
+  #   shell: |
+  #     curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
+  #     apt-get install -y nodejs
+  #     apt-get install -y gcc g++ make
+  #     npm install -g docker-loghose
+  #     npm install -g docker-enter
+  #   become: '{{ item }}'
+  #   args:
+  #     executable: /bin/bash
+  #     creates: '/usr/bin/npm'
+  #   with_items:
+  #     - true  # Run as root
+  #   tags:
+  #   - node
+  #   - npm
 
 # TODO: Install
+
+
+# SOURCE: https://github.com/iovisor/bcc/blob/master/INSTALL.md
+
+# perf tools
+# bcc
+
+# FIXME: https://github.com/pypa/pip/issues/5240
+# curl https://bootstrap.pypa.io/get-pip.py | python3
+# pip2 install --upgrade pip
+
+# sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4052245BD4284CDD
+# echo "deb https://repo.iovisor.org/apt/$(lsb_release -cs) $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/iovisor.list
+# sudo apt-get update
+# sudo apt-get install bcc-tools libbcc-examples linux-headers-$(uname -r)
+
+- name: 'Add an apt key by id from a keyserver - apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4052245BD4284CDD'
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 4052245BD4284CDD
+    state: present
+
+# Add specified repository into sources list using specified filename.
+- name: add bcc repo on xenial
+  apt_repository:
+    repo: deb https://repo.iovisor.org/apt/{{ansible_distribution_release}} {{ansible_distribution_release}} main
+    state: present
+    update_cache: yes
+    filename: iovisor.list
+  when: ansible_os_family == "Debian"
+
+# - name: Add repositories
+#   apt_repository:
+#     repo: 'ppa:dawidd0811/neofetch'
+#     state: present
+#     update_cache: yes
+#   when: ansible_os_family == "Debian"
+
+- name: 'uname -r'
+  shell: uname -r
+  ignore_errors: yes
+  failed_when: false
+  changed_when: false
+  register: uname_result
+
+- debug: msg="{{ uname_result.stdout }}"
+
+- name: "Install bcc"
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+      - bcc-tools
+      - libbcc-examples
+      - "linux-headers-{{ uname_result.stdout }}"
