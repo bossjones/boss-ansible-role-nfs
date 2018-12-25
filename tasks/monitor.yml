@@ -20,8 +20,8 @@
 
 - name: Generate /home/vagrant/.tmuxinator/perf.yaml file
   template:
-    src: "home/vagrant/.tmuxinator/perf.yaml.j2"
-    dest: "/home/vagrant/.tmuxinator/perf.yaml"
+    src: "home/vagrant/.tmuxinator/perf.yml.j2"
+    dest: "/home/vagrant/.tmuxinator/perf.yml"
     mode: "0644"
   become: '{{ item }}'
   ignore_errors: yes
