@@ -177,6 +177,8 @@
         - jnettop
         - kerneltop
         - logtop
+        - nicstat
+        - xclip
 
 # TODO: For consideration
 # root@nfs-master1:~# apt-cache search top | grep "top - .*"
