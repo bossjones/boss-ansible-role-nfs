@@ -44,7 +44,7 @@
     group: "root"
     mode: "0644"
   notify:
-  - run exportfs to export or unexport all directories
+  - Run exportfs to export or unexport all directories
   - Restart nfs-kernel-server
   register: boss__nfs__etc_default_nfs_common
 
@@ -109,7 +109,7 @@
     group: "root"
     mode: "0644"
   notify:
-  - run exportfs to export or unexport all directories
+  - Run exportfs to export or unexport all directories
   - Restart nfs-kernel-server
   register: boss__nfs__etc_idmapd
 

@@ -67,7 +67,7 @@
     group: root
     mode: 0644
   notify:
-  - run exportfs to export or unexport all directories
+  - Run exportfs to export or unexport all directories
   - Restart nfs-kernel-server
   register: nfs_exports_result
 
@@ -99,7 +99,7 @@
     group: "root"
     mode: "0644"
   notify:
-  - run exportfs to export or unexport all directories
+  - Run exportfs to export or unexport all directories
   - Restart nfs-kernel-server
   register: boss__nfs__etc_default_nfs_kernel_server
 
@@ -119,7 +119,7 @@
     group: "root"
     mode: "0644"
   notify:
-  - run exportfs to export or unexport all directories
+  - Run exportfs to export or unexport all directories
   - Restart nfs-kernel-server
   register: boss__nfs__nfs_register_systemd_service
 
@@ -131,7 +131,7 @@
     group: "root"
     mode: "0644"
   notify:
-  - run exportfs to export or unexport all directories
+  - Run exportfs to export or unexport all directories
   - Restart nfs-kernel-server
   register: boss__nfs__register_limits_override
 
