@@ -6,6 +6,7 @@
 - src: https://github.com/bossjones/boss-ansible-role-docker
 - src: https://github.com/bossjones/boss-ansible-role-etckeeper
 - src: https://github.com/bossjones/boss-ansible-role-debug
+- src: https://github.com/bossjones/boss-ansible-role-nfs
 - src: geerlingguy.pip
 - src: https://github.com/bossjones/ansible-goss-install
 - src: rvm.ruby
