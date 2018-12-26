@@ -37,9 +37,31 @@
     state: started
     enabled: yes
   with_items:
-    # - rpcbind
+    - rpcbind
     # - nfs-server
     - nfs-kernel-server
+
+# root@nfs-master1:/etc/netdata# systemctl list-unit-files --type=service | grep nfs
+# mountkernfs.service                        masked
+# mountnfs-bootclean.service                 masked
+# mountnfs.service                           masked
+# nfs-blkmap.service                         static
+# nfs-config.service                         static
+# nfs-idmapd.service                         static
+# nfs-kernel-server.service                  enabled
+# nfs-mountd.service                         static
+# nfs-server.service                         enabled
+# nfs-utils.service                          static
+# umountnfs.service                          masked
+
+# root@nfs-master1:/etc/netdata# systemctl list-unit-files --type=service | grep rpc
+# auth-rpcgss-module.service                 static
+# rpc-gssd.service                           static
+# rpc-statd-notify.service                   disabled
+# rpc-statd.service                          disabled
+# rpc-svcgssd.service                        static
+# rpcbind.service                            enabled
+# root@nfs-master1:/etc/netdata#
 
 # - name: start services
 #   service:
