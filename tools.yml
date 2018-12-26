@@ -1030,4 +1030,4 @@
       rvm1_rubies: ['ruby-2.4.2']
       rvm1_user: "{{ ansible_user_id }}"
       rvm1_install_flags: '--auto-dotfiles --user-install -s stable --gems="bundler tmuxinator"'
-      rvm1_install_path: "/home/{{ ansible_user_id }}/.rvm"
+      rvm1_install_path: "{{ ansible_user_dir }}/.rvm"
