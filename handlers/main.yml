@@ -7,6 +7,10 @@
   ignore_errors: yes
 
 
+- name: Run mount to export or unexport all directories
+  shell: mount -a
+  ignore_errors: yes
+
 - name: Restart nfs-kernel-server
   service:
     name: nfs-kernel-server

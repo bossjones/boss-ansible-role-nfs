@@ -63,15 +63,35 @@
 #   with_items:
 #     - rpcbind
 
-- name: mount the NFS directories
-  mount:
-    path: "{{ item.path }}"
-    src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
+# FIXME: This isnt' working unfortunately
+# - name: mount the NFS directories
+#   mount:
+#     path: "{{ item.path }}"
+#     src: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }}"
+#     state: "{{item.state}}"
+#     fstype: "{{item.fstype}}"
+#     opts: "{{item.opts}}"
+#     backup: "{{item.backup}}"
+#   with_items: "{{ boss__nfs__nfs_exports }}"
+
+# - name: mount the NFS directories
+#   replace:
+#     dest: /etc/fstab
+#     regexp: '^//archive/pipeline'
+#     replace: '#//archive/pipeline'
+#   tags: update-fstab
+
+- name: Comment out pipeline archive in fstab
+  lineinfile:
+    dest: /etc/fstab
+    regexp: "^{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }} {{ item.path }} {{item.fstype}} {{item.opts}}"
+    line: "{{ hostvars[groups[boss__nfs__nfs_server_group][0]]['ansible_' + boss__nfs__nfs_interface].ipv4.address }}:{{ item.remote }} {{ item.path }} {{item.fstype}} {{item.opts}}"
     state: "{{item.state}}"
-    fstype: "{{item.fstype}}"
-    opts: "{{item.opts}}"
     backup: "{{item.backup}}"
+  tags: update-fstab
   with_items: "{{ boss__nfs__nfs_exports }}"
+  notify:
+  - Run mount to export or unexport all directories
 
 # ----
 
