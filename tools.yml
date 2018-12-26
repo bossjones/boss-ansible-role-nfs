@@ -731,8 +731,9 @@
 
   - name: git clone https://github.com/bossjones/tmux-config.git
     shell: |
-              git clone https://github.com/bossjones/tmux-config.git ~/tmux-config || (cd ~/tmux-config ; git pull)
-              ~/tmux-config/install.sh
+      git clone https://github.com/bossjones/tmux-config.git ~/tmux-config || (cd ~/tmux-config ; git pull)
+      ~/tmux-config/install.sh
+      chdir=$HOME
     become: '{{ item }}'
     args:
       executable: /bin/bash
