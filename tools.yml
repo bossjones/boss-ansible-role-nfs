@@ -1010,24 +1010,24 @@
      tags:
       - goss
 
-- hosts: nodes
-  name: (nodes) - Install and configure rvm
-  gather_facts: True
-  become: no
-  become_method: sudo
-  environment:
-    DEBIAN_FRONTEND: noninteractive
-  tags:
-    - ruby
-    - nodes
-    - servers
-    - rvm
-    - install
-    - node_install
-  roles:
-    - role: rvm.ruby
-      become: False
-      rvm1_rubies: ['ruby-2.4.2']
-      rvm1_user: "{{ ansible_user_id }}"
-      rvm1_install_flags: '--auto-dotfiles --user-install -s stable --gems="bundler tmuxinator"'
-      rvm1_install_path: "{{ ansible_user_dir }}/.rvm"
+# - hosts: nodes
+#   name: (nodes) - Install and configure rvm
+#   gather_facts: True
+#   become: no
+#   become_method: sudo
+#   environment:
+#     DEBIAN_FRONTEND: noninteractive
+#   tags:
+#     - ruby
+#     - nodes
+#     - servers
+#     - rvm
+#     - install
+#     - node_install
+#   roles:
+#     - role: rvm.ruby
+#       become: False
+#       rvm1_rubies: ['ruby-2.4.2']
+#       rvm1_user: "{{ ansible_user_id }}"
+#       rvm1_install_flags: '--auto-dotfiles --user-install -s stable --gems="bundler tmuxinator"'
+#       rvm1_install_path: "{{ ansible_user_dir }}/.rvm"
