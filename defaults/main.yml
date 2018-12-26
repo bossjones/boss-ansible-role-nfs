@@ -40,3 +40,5 @@ boss__nfs__sysctl_fileno: 1048576
 
 bossjones__user: vagrant
 bossjones__group: vagrant
+
+boss__nfs__nfs_daemon: nfs-kernel-server
