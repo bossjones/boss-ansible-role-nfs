@@ -899,6 +899,93 @@
       group: "root"
       mode: 0755
 
+  - name: source $HOME/.rvm/scripts/rvm to root/ssh user bashrc
+    lineinfile:
+      path: '$HOME/.bashrc'
+      line: 'source $HOME/.rvm/scripts/rvm'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+  - name: source $HOME/.rvm/scripts/rvm to root/ssh user bashrc
+    lineinfile:
+      path: '$HOME/.bash_profile'
+      line: 'source $HOME/.rvm/scripts/rvm'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+  - name: autocomplete rvm
+    lineinfile:
+      path: '$HOME/.bash_profile'
+      line: '[[ -r $rvm_path/scripts/completion ]] && . $rvm_path/scripts/completion'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+  - name: autocomplete rvm
+    lineinfile:
+      path: '$HOME/.bashrc'
+      line: '[[ -r $rvm_path/scripts/completion ]] && . $rvm_path/scripts/completion'
+      create: yes
+    become: '{{ item }}'
+    with_items:
+      - true  # Run as root
+      - false # Run as SSH user
+
+  # \curl -sSL https://get.rvm.io | bash -s stable --ruby=jruby --gems=rails,puma
+  # curl -sSL https://get.rvm.io | bash -s stable --ruby
+  # \curl -sSL https://get.rvm.io | bash -s stable --with-default-gems="tmuxinator bundler"
+
+  - name: install rvm for base user
+    shell: |
+      gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB;
+      \curl -sSL https://get.rvm.io | bash -s stable --ruby=2.4.2 --gems=tmuxinator,bundler;
+    args:
+      executable: /bin/bash
+      creates: '$HOME/.rvm'
+    register: rvm_install_global
+    changed_when: false
+    ignore_errors: yes
+    failed_when: false
+    check_mode: no
+    become: yes
+    become_user: "{{bossjones__user}}"
+
+  # source $HOME/.rvm/scripts/rvm
+
+  # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+  # export PATH="$PATH:$HOME/.rvm/bin"
+
+  - name: install gems for rvm version
+    shell: $SHELL -lc "rvm use {{boss__tools__ruby_version}} --default; gem install {{item}}"
+    args:
+      executable: /bin/bash
+      creates: '{{ ansible_user_dir }}/.rvm/gems/ruby-{{ boss__tools__ruby_version }}/bin/bundler'
+    register: rvm_install_global
+    changed_when: false
+    ignore_errors: yes
+    environment:
+      PATH: "{{ ansible_user_dir }}/.rvm/gems/ruby-{{ boss__tools__ruby_version }}/bin:\
+              {{ ansible_user_dir }}/.rvm/gems/ruby-{{ boss__tools__ruby_version }}@global/bin:\
+              {{ ansible_user_dir }}/.rvm/rubies/ruby-{{ boss__tools__ruby_version }}/bin:\
+              {{ ansible_user_dir }}/.rvm/bin:\
+              {{ lookup('env', 'PATH') }}"
+    failed_when: false
+    check_mode: no
+    with_items:
+      - tmuxinator
+      - bundler
+    become: yes
+    become_user: "{{bossjones__user}}"
+
+
 
 # Mount config options
 # root@nfs-worker1:~# nfsstat -m
@@ -1023,26 +1110,26 @@
      tags:
       - goss
 
-- hosts: nodes
-  name: (nodes) - Install and configure rvm
-  gather_facts: True
-  become: no
-  become_method: sudo
-  environment:
-    DEBIAN_FRONTEND: noninteractive
-  tags:
-    - ruby
-    - nodes
-    - servers
-    - rvm
-    - install
-    - node_install
-  roles:
-  - role: rvm.ruby
-    become: False
-    vars:
-      become: False
-      rvm1_rubies: ['ruby-2.4.2']
-      rvm1_user: "{{ ansible_user_id }}"
-      rvm1_install_flags: '--auto-dotfiles --user-install'
-      rvm1_install_path: "{{ ansible_user_dir }}/.rvm"
+# - hosts: nodes
+#   name: (nodes) - Install and configure rvm
+#   gather_facts: True
+#   become: no
+#   become_method: sudo
+#   environment:
+#     DEBIAN_FRONTEND: noninteractive
+#   tags:
+#     - ruby
+#     - nodes
+#     - servers
+#     - rvm
+#     - install
+#     - node_install
+#   roles:
+#   - role: rvm.ruby
+#     become: False
+#     vars:
+#       become: False
+#       rvm1_rubies: ['ruby-2.4.2']
+#       rvm1_user: "{{ ansible_user_id }}"
+#       rvm1_install_flags: '--auto-dotfiles --user-install'
+#       rvm1_install_path: "{{ ansible_user_dir }}/.rvm"

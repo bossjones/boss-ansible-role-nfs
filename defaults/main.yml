@@ -36,3 +36,7 @@ boss__nfs__nfs_exports:
 
 # number of new filedescriptor limit
 boss__nfs__sysctl_fileno: 1048576
+
+
+bossjones__user: vagrant
+bossjones__group: vagrant
