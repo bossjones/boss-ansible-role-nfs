@@ -24,7 +24,7 @@ boss__nfs__nfs_exports:
     # opts: _netdev,auto  0  0
     # SOURCE: https://linux.die.net/man/8/mount ( for mounting options )
     # SOURCE: https://linux.die.net/man/5/nfs ( for mounting options )
-    opts: "nfsvers=4.1,_netdev,auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0"
+    opts: "_netdev,auto,nofail,noatime,nolock,intr,tcp,actimeo=1800,nfsvers=4,vers=4,minorversion=1 0 0"
     # srvr1:/usr/local  /usr/local  nfs  noauto,x-systemd.automount,nfsvers=4.1,rsize=131072,wsize=131072  0  0
     # defaults = rw, suid, dev, exec, auto, nouser, async, and relatime.
     backup: yes
