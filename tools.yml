@@ -119,7 +119,7 @@
     become_method: sudo
     args:
       executable: /bin/bash
-      creates: /usr/local/bin/fzy
+      creates: /usr/bin/fzy
 
 #   wget https://github.com/jhawthorn/fzy/releases/download/0.9/fzy_0.9-1_amd64.deb
 # $ sudo dpkg -i fzy_0.9-1_amd64.deb
@@ -732,8 +732,7 @@
   - name: git clone https://github.com/bossjones/tmux-config.git
     shell: |
               git clone https://github.com/bossjones/tmux-config.git ~/tmux-config || (cd ~/tmux-config ; git pull)
-              ./tmux-config/install.sh
-              chdir=$HOME/tmux-config
+              ~/tmux-config/install.sh
     become: '{{ item }}'
     args:
       executable: /bin/bash
