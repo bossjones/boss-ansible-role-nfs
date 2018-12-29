@@ -133,7 +133,6 @@
   - Restart nfs-kernel-server
   register: boss__nfs__etc_idmapd
 
-
 # NOTE: (This is now fixed) https://bugs.launchpad.net/ubuntu/+source/nfs-utils/+bug/1590799
 # systemctl add-wants multi-user rpcbind.service
 # https://github.com/nodesource/distributions/blob/master/README.md
@@ -150,9 +149,6 @@
   # changed_when: false
   with_items:
     - true  # Run as root
-  tags:
-  - rpcbind
-  - systemctl
 
 - name: "ENABLE: {{ item }}"
   service:

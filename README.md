@@ -131,3 +131,11 @@ root@nfs-worker1:~#
 
 https://cromwell-intl.com/open-source/performance-tuning/disks.html
 https://linuxconfig.org/how-to-automatically-execute-shell-script-at-startup-boot-on-systemd-linux
+
+
+# Ansible tags don't work they way you think they work
+- https://ansiblemaster.wordpress.com/2017/01/18/using-tags-for-each-role/
+- https://www.rundeck.com/open-source
+- https://blog.theodo.fr/2015/10/best-practices-to-build-great-ansible-playbooks/
+- https://medium.com/@moomzni/using-tags-to-speed-up-ansible-b17b6f462c22
+- https://www.reddit.com/r/ansible/comments/8qt7ds/tags_inheritance_in_include_tasks_vs_import_tasks/

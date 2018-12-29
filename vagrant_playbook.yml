@@ -3,24 +3,31 @@
 # SERVERS: Install and configure ntp
 ##############################################################################
 - hosts: servers
-  name: servers install etckeeper
+  name: servers install etckeeper, ntp, timezone and tools
   gather_facts: True
   become: yes
   become_method: sudo
   environment:
     DEBIAN_FRONTEND: noninteractive
-  tags:
-    - servers
-    - install
-    - servers_install
-    - etckeeper
   roles:
     - role: boss-ansible-role-etckeeper
+      tags:
+        - boss-ansible-role-etckeeper
+
+    - role: boss-ansible-role-timezone
+      tags:
+        - boss-ansible-role-timezone
+
     - role: boss-ansible-role-ntp
+      tags:
+        - boss-ansible-role-ntp
+
     - role: boss-ansible-role-tools
       task: tools
       bossjones__user: vagrant
       bossjones__group: vagrant
+      tags:
+        - boss-ansible-role-tools
 
 - hosts: masters
   name: (masters) - Install and configure nfs
@@ -31,17 +38,14 @@
     DEBIAN_FRONTEND: noninteractive
   vars:
     boss__ntp__timezone: 'America/New_York'
-  tags:
-    - master
-    - install
-    - master_install
-
   roles:
     - role: ../
       task: master
       boss__nfs__master_node_ip: '192.168.50.101'
       boss__nfs__nfs_interface: 'enp0s8'
       # boss__nfs__nfs_interface: 'enp0s3'
+      tags:
+        - boss-ansible-role-nfs
 
 
 - hosts: nodes
@@ -53,37 +57,12 @@
     DEBIAN_FRONTEND: noninteractive
   vars:
     boss__ntp__timezone: 'America/New_York'
-  tags:
-    - nodes
-    - install
-    - master_install
-
   roles:
     - role: ../
       task: client
       boss__nfs__master_node_ip: '192.168.50.101'
       boss__nfs__nfs_interface: 'enp0s8'
       # boss__nfs__nfs_interface: 'enp0s3'
+      tags:
+        - boss-ansible-role-nfs
 
-- hosts: nodes
-  name: (nodes) - Install and configure tmuxinator
-  gather_facts: True
-  become: no
-  become_method: sudo
-  vars:
-    bossjones__user: vagrant
-    bossjones__group: vagrant
-  environment:
-    DEBIAN_FRONTEND: noninteractive
-  tags:
-    - ruby
-    - nodes
-    - servers
-    - rvm
-    - install
-    - node_install
-  roles:
-    - role: ../
-      task: monitor
-      boss__nfs__master_node_ip: '192.168.50.101'
-      boss__nfs__nfs_interface: 'enp0s8'
