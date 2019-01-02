@@ -162,10 +162,13 @@ reload:
 	@vagrant reload
 
 destroy:
+	@vagrant halt -f
 	@vagrant destroy -f
 
 run-ansible:
 	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v
+
+converge: up run-ansible
 
 run-ansible-etckeeper:
 	@ansible-playbook -i inventory.ini vagrant_playbook.yml -v -f 10 --tags etckeeper
@@ -201,7 +204,7 @@ run-ansible-timezone:
 	@ansible-playbook -i inventory.ini timezone.yml -v
 
 ping:
-	@ansible-playbook -v -i inventory.ini ping.yml -vvvvv
+	@ansible-playbook -v -i inventory.ini ping.yml -v
 
 # [ANSIBLE0013] Use shell only when shell functionality is required
 ansible-lint-role:

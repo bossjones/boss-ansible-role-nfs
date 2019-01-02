@@ -38,6 +38,17 @@ boss__nfs__nfs_exports:
 # number of new filedescriptor limit
 boss__nfs__sysctl_fileno: 1048576
 
+boss__nfs__systemd_limit_mem_lock: infinity
+boss__nfs__systemd_limit_no_file: 1048576
+boss__nfs__systemd_limit_nproc: infinity
+boss__nfs__systemd_limit_core: infinity
+boss__nfs__etc_default_nfs_rpcnfsdcount: 64
+# RPCNFSDCOUNT
+# LimitMEMLOCK=infinity
+# LimitNOFILE=1048576
+# LimitNPROC=infinity
+# LimitCORE=infinity
+
 
 bossjones__user: vagrant
 bossjones__group: vagrant

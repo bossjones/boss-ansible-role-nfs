@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 # Number of servers to start up
-RPCNFSDCOUNT=64
+RPCNFSDCOUNT={{boss__nfs__etc_default_nfs_rpcnfsdcount}}
 
 # Runtime priority of server (see nice(1))
 RPCNFSDPRIORITY=0

@@ -1,6 +1,6 @@
 # {{ ansible_managed }}
 [Service]
-LimitMEMLOCK=infinity
-LimitNOFILE=1048576
-LimitNPROC=infinity
-LimitCORE=infinity
+LimitMEMLOCK={{boss__nfs__systemd_limit_mem_lock}}
+LimitNOFILE={{boss__nfs__systemd_limit_no_file}}
+LimitNPROC={{boss__nfs__systemd_limit_nproc}}
+LimitCORE={{boss__nfs__systemd_limit_core}}
