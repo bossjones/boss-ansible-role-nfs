@@ -283,4 +283,4 @@
     - name: start and enable netdata
       become: yes
       service: name=netdata state=restarted enabled=yes
-      when: backend_block_added|changed
+      when: backend_block_added is changed

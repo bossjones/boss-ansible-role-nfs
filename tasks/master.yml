@@ -193,13 +193,13 @@
 #   service:
 #     name: nfs-server
 #     state: restarted
-#   when: nfs_exports_result|changed
+#   when: nfs_exports_result is changed
 
 # - name: Restart rpc-statd server service
 #   service:
 #     name: rpc-statd
 #     state: restarted
-#   when: nfs_exports_result|changed
+#   when: nfs_exports_result is changed
 
 # - name: enable firewalld for NFS Server
 #   firewalld:
